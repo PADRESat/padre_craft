@@ -1,0 +1,10 @@
+timestamp,shipOCStat,shipFPGATCFail,shipWRebootCount,shipFPGAVer,shipFPGATCRec,shipHV1DAC,shipFSVersion,shipSeqID,shipFSWVer,shipTCExe,shipPackLen,shipTCRej,shipFlashWB,shipAppID,shipPSStat,shipHV2DAC,shipSecUTC,shipFSLoc,shipFlashRB,shipBadBC
+1758193142,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+1758193112,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+1758193082,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+1758193052,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+1758193022,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+1758192992,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+1758192962,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+1758192932,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+1758192902,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
