@@ -56,6 +56,7 @@ def process_file(filename: Path, overwrite=False) -> list:
         date_beg = data_ts.time[0]
         date_end = data_ts.time[-1]
         primary_hdr["DATE-BEG"] = (date_beg.fits, get_comment("DATE-BEG"))
+        primary_hdr["DATE-END"] = (date_end.fits, get_comment("DATE-END"))
         primary_hdr["DATEREF"] = (date_beg.fits, get_comment("DATEREF"))
 
         colnames_to_remove = [

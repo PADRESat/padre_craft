@@ -117,7 +117,8 @@ exclude = [
   "site-packages",
   "venv",
   "conftest.py",
-  "conf.py"
+  "conf.py",
+  "padre_craft/__init__.py"
 ]
 
 # Same as Black.

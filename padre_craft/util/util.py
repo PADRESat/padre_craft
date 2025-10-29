@@ -2,12 +2,6 @@ from pathlib import Path
 
 from astropy.time import Time
 from swxsoc.util import (
-    Descriptor,
-    DevelopmentBucket,
-    Instrument,
-    Level,
-    SearchTime,
-    SWXSOCClient,
     create_science_filename,
     parse_science_filename,
 )

@@ -11,9 +11,7 @@ import git
 import solarnet_metadata
 from astropy import units as u
 from astropy.io import ascii
-from astropy.table import Table, vstack
 from astropy.time import Time
-from astropy.utils.metadata import MergeConflictWarning
 from solarnet_metadata.schema import SOLARNETSchema
 
 import padre_craft
