@@ -72,7 +72,7 @@ def read_raw_file(file_path: Path) -> TimeSeries:
     bad_col_names = []
     for this_col in ts.itercols():
         if not isinstance(this_col, Time):
-            if not this_col.dtype.kind in ["i", "f"]:
+            if this_col.dtype.kind not in ["i", "f"]:
                 bad_col_names.append(this_col.name)
     if len(bad_col_names) > 0:
         ts.remove_columns(bad_col_names)
