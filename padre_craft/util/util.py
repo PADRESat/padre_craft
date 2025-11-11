@@ -1,10 +1,7 @@
 from pathlib import Path
 
 from astropy.time import Time
-from swxsoc.util import (
-    create_science_filename,
-    parse_science_filename,
-)
+from swxsoc.util import create_science_filename, parse_science_filename
 
 from padre_craft import log
 
@@ -17,6 +14,7 @@ TOKEN_TO_DATATYPE = {
     "MEDDEA": "meddea",
     "SHIP": "sharp",
     "BP": "battery",
+    "OBC_0": "obc",
 }
 
 

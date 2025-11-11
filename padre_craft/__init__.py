@@ -16,7 +16,7 @@ os.environ["SWXSOC_MISSION"] = SWXSOC_MISSION
 from swxsoc import config as swxsoc_config  # noqa: E402
 from swxsoc import log as swxsoc_log
 from swxsoc import print_config
-
+from astropy.time import Time
 # Load user configuration
 config = swxsoc_config
 
@@ -28,5 +28,7 @@ __all__ = ["config", "print_config"]
 _package_directory = Path(__file__).parent
 _data_directory = _package_directory / "data"
 _test_files_directory = _package_directory / "data" / "test"
+
+launch_date = Time('2025-07-23T00:00')
 
 log.debug(f"padre_craft version: {__version__}")

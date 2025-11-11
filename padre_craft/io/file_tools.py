@@ -9,6 +9,7 @@ from astropy.io import ascii
 from astropy.time import Time
 from astropy.timeseries import TimeSeries
 
+from padre_craft import launch_date
 from padre_craft.util.util import filename_to_datatype
 
 __all__ = ["read_file", "read_raw_file", "read_fits"]
@@ -44,7 +45,8 @@ def read_file(filename: Path):
 
 def read_raw_file(file_path: Path) -> TimeSeries:
     """
-    Read a raw (csv) data file.
+    Read a raw (csv) data file and return a timeseries.
+    Note that columns that cannot are not recognized as ints or floats are removed.
 
     Parameters
     ---------
@@ -59,9 +61,21 @@ def read_raw_file(file_path: Path) -> TimeSeries:
     if not isinstance(file_path, Path):
         file_path = Path(file_path)
     data_table = ascii.read(file_path, format="csv")
-    time = Time(data_table["timestamp"], format="unix")
+    time_column_name = "timestamp_ms"
+    if time_column_name not in data_table.colnames:
+        raise ValueError("No time column found, timestamp_ms")
+    time = Time(data_table[time_column_name] / 1000.0, format="unix")
+    time.format = "isot"
     ts = TimeSeries(time=time, data=data_table)
-    ts.time.format = "isot"
+    if sum(ts.time < launch_date) > 0:
+        raise ValueError("Found time before launch.")
+    bad_col_names = []
+    for this_col in ts.itercols():
+        if not isinstance(this_col, Time):
+            if not this_col.dtype.kind in ["i", "f"]:
+                bad_col_names.append(this_col.name)
+    if len(bad_col_names) > 0:
+        ts.remove_columns(bad_col_names)
     ts.meta.update({"filename": file_path.name})
     ts.meta.update({"data_type": filename_to_datatype(file_path.name)})
     ts.sort()
