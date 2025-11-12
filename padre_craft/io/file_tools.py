@@ -67,7 +67,7 @@ def read_raw_file(file_path: Path) -> TimeSeries:
     time = Time(data_table[time_column_name] / 1000.0, format="unix")
     time.format = "isot"
     ts = TimeSeries(time=time, data=data_table)
-    if sum(ts.time < launch_date) > 0:
+    if any(ts.time < launch_date) > 0:
         raise ValueError("Found time before launch.")
     bad_col_names = []
     for this_col in ts.itercols():
