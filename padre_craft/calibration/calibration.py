@@ -95,6 +95,11 @@ def process_file(filename: Path, overwrite=False, output_fits=False) -> list:
             hdul.writeto(path, overwrite=overwrite, checksum=True)
             hdul.close()
             output_files.append(path)
+        else: 
+            # If not outputting FITS, return a `None` placeholder
+            # We don't want to return an empty list as that would imply no processing was done
+            # We also don't want to return the original filename as an output
+            output_files.append(None)
 
     # add other tasks below
     return output_files
