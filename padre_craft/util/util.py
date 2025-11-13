@@ -1,11 +1,17 @@
 from pathlib import Path
 
 from astropy.time import Time
+from astropy.timeseries import TimeSeries
 from swxsoc.util import create_science_filename, parse_science_filename
 
 from padre_craft import log
 
-__all__ = ["filename_to_datatype", "create_craft_filename", "parse_science_filename"]
+__all__ = [
+    "filename_to_datatype",
+    "create_craft_filename",
+    "parse_science_filename",
+    "convert_meddea_colnames",
+]
 
 TOKEN_TO_DATATYPE = {
     "CUBEADCS": "adcs",
@@ -28,6 +34,33 @@ def filename_to_datatype(filename: Path) -> str:
             return datatype
     log.warning(f"Could not determine data type for file {filename.name}")
     return token
+
+
+def convert_meddea_colnames(ts: TimeSeries):
+    """Given the column names from OBC MeDDEA standard to padre_meddea standard."""
+    # translation betweem OBC MeDDEA housekeeping names to padre_meddea HK names
+
+    OBC_TO_MEDDEA = {
+        "FPTemp": "fp_temp",
+        "DIBTemp": "dib_temp",
+        "HVTemp": "hvps_temp",
+        "HVVolts": "hvps_vsense",
+        "HVCurrent": "hvps_csense",
+        "Amps_1V5": "csense_15v",
+        "Amps_3V3_D": "csense_33vd",
+        "Amps_3V3_A": "csense_33va",
+        "phRate": "hit_rate",
+        "goodCmdCount": "good_cmd_cnt",
+        "errorCount": "error_cnt",
+        "heaterPWM": "heater_pwm_duty_cycle",
+        "decimationRate": "decimation_rate",
+        "sysError": "error_summary",
+    }
+
+    for obc_col, meddea_col in OBC_TO_MEDDEA.items():
+        if obc_col in ts.colnames:
+            ts.rename_column(obc_col, meddea_col)
+    return ts
 
 
 def create_craft_filename(

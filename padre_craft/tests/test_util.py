@@ -2,12 +2,26 @@ import pytest
 
 import padre_craft.util.util as util
 from padre_craft import _test_files_directory
+from padre_craft.io import read_file
 
 TIME = "2024-04-06T12:06:21"
 TIME_FORMATTED = "20240406T120621"
 
 test_file_paths = _test_files_directory.glob("*.csv")
 valid_datatypes = list(util.TOKEN_TO_DATATYPE.values())
+
+
+def test_convert_meddea_colnames():
+    test_file = (
+        _test_files_directory
+        / "padre_get_MEDDEA_HOUSE_KEEPING_Data_1762957498291_1762958733455.csv"
+    )
+    hk_ts = read_file(test_file)
+    new_hk_ts = util.convert_meddea_colnames(hk_ts)
+    assert "fp_temp" in new_hk_ts.colnames
+    assert "dib_temp" in new_hk_ts.colnames
+    assert "FPTemp" not in new_hk_ts.colnames
+    assert "HVCurrent" not in new_hk_ts.colnames
 
 
 @pytest.mark.parametrize("this_path", list(test_file_paths))
