@@ -10,7 +10,7 @@ Overview
     * - docs
       - |docs|
     * - build status
-      - |testing| |codestyle|
+      - |testing| |codestyle| |coverage|
 
 .. |docs| image:: https://github.com/PADRESat/padre_craft/actions/workflows/docs.yml/badge.svg
     :target: https://github.com/PADRESat/padre_craft/actions/workflows/docs.yml
@@ -22,7 +22,11 @@ Overview
 
 .. |codestyle| image:: https://github.com/PADRESat/padre_craft/actions/workflows/codestyle.yml/badge.svg
     :target: https://github.com/PADRESat/padre_craft/actions/workflows/codestyle.yml
-    :alt: Codestyle and linting using flake8
+    :alt: Codestyle and linting
+
+.. |coverage| .. image:: https://codecov.io/gh/PADRESat/padre_craft/graph/badge.svg?token=XTT6NVS4HW 
+    :target: https://codecov.io/gh/PADRESat/padre_craft
+    :alt: code coverage
 
 .. end-badges
 
