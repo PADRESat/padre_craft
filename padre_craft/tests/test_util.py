@@ -14,7 +14,7 @@ valid_datatypes = list(util.TOKEN_TO_DATATYPE.values())
 def test_convert_meddea_colnames():
     test_file = (
         _test_files_directory
-        / "padre_get_MEDDEA_HOUSE_KEEPING_Data_1762957498291_1762958733455.csv"
+        / "padre_get_MEDDEA_HOUSE_KEEPING_Data_1762493454480_1762611866270.csv"
     )
     hk_ts = read_file(test_file)
     new_hk_ts = util.convert_meddea_colnames(hk_ts)
