@@ -45,12 +45,11 @@ dev = [
   'coverage[toml]',
   'pytest-doctestplus',
   'ruff',
-  'moto',
 ]
 
 docs = ['sphinx', 'sphinx-automodapi', 'matplotlib', 'sphinx-copybutton', 'pydata-sphinx-theme']
 
-test = ['pytest', 'pytest-astropy', 'pytest-cov', 'coverage[toml]']
+test = ['pytest', 'pytest-astropy', 'pytest-cov', 'coverage[toml]', 'moto',]
 
 style = ['ruff']
 
