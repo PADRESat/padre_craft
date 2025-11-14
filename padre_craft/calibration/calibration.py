@@ -18,7 +18,7 @@ __all__ = [
 ]
 
 
-def process_file(filename: Path, overwrite=False) -> list:
+def process_file(filename: Path, overwrite=False, output_fits=False) -> list:
     """
     This is the entry point for the pipeline processing.
     It runs all of the various processing steps required.
@@ -47,52 +47,59 @@ def process_file(filename: Path, overwrite=False) -> list:
         data_type = data_ts.meta["data_type"]
 
         aws_db.record_housekeeping(data_ts, data_type)
-        data_table = Table(data_ts)
 
-        # Get FITS Primary Header Template
-        primary_hdr = get_primary_header(
-            file_path, data_level=level_str, data_type=data_type
-        )
-        date_beg = data_ts.time[0]
-        date_end = data_ts.time[-1]
-        primary_hdr["DATE-BEG"] = (date_beg.fits, get_comment("DATE-BEG"))
-        primary_hdr["DATE-END"] = (date_end.fits, get_comment("DATE-END"))
-        primary_hdr["DATEREF"] = (date_beg.fits, get_comment("DATEREF"))
+        if output_fits:
+            data_table = Table(data_ts)
 
-        colnames_to_remove = [
-            "time",
-        ]
-        for this_col in colnames_to_remove:
-            if this_col in data_table.colnames:
-                data_table.remove_column(this_col)
+            # Get FITS Primary Header Template
+            primary_hdr = get_primary_header(
+                file_path, data_level=level_str, data_type=data_type
+            )
+            date_beg = data_ts.time[0]
+            date_end = data_ts.time[-1]
+            primary_hdr["DATE-BEG"] = (date_beg.fits, get_comment("DATE-BEG"))
+            primary_hdr["DATE-END"] = (date_end.fits, get_comment("DATE-END"))
+            primary_hdr["DATEREF"] = (date_beg.fits, get_comment("DATEREF"))
 
-        path = create_craft_filename(
-            time=date_beg,
-            level=level_str,
-            descriptor=data_type,
-            test=test_flag,
-            version="1.0.0",
-            overwrite=overwrite,
-        )
-        primary_hdr["FILENAME"] = (path, get_comment("FILENAME"))
-        # record originating filename
-        # aws_db.record_filename(file_path.name, date_beg, date_end)
-        # record output filename
-        # aws_db.record_filename(path.name, date_beg, date_end)
-        empty_primary_hdu = fits.PrimaryHDU(header=primary_hdr)
+            colnames_to_remove = [
+                "time",
+            ]
+            for this_col in colnames_to_remove:
+                if this_col in data_table.colnames:
+                    data_table.remove_column(this_col)
 
-        # Create HK HDU
-        hk_header = get_obs_header(data_level=level_str, data_type=data_type)
-        hk_header["DATE-BEG"] = (date_beg.fits, get_comment("DATE-BEG"))
-        hk_header["DATEREF"] = (date_beg.fits, get_comment("DATEREF"))
-        hk_header["FILENAME"] = (path, get_comment("FILENAME"))
+            path = create_craft_filename(
+                time=date_beg,
+                level=level_str,
+                descriptor=data_type,
+                test=test_flag,
+                version="1.0.0",
+                overwrite=overwrite,
+            )
+            primary_hdr["FILENAME"] = (path, get_comment("FILENAME"))
+            # record originating filename
+            # aws_db.record_filename(file_path.name, date_beg, date_end)
+            # record output filename
+            # aws_db.record_filename(path.name, date_beg, date_end)
+            empty_primary_hdu = fits.PrimaryHDU(header=primary_hdr)
 
-        hk_hdu = fits.BinTableHDU(data=data_table, header=hk_header, name="HK")
-        hk_hdu.add_checksum()
-        hdul = fits.HDUList([empty_primary_hdu, hk_hdu])
-        hdul.writeto(path, overwrite=overwrite, checksum=True)
-        hdul.close()
-        output_files.append(path)
+            # Create HK HDU
+            hk_header = get_obs_header(data_level=level_str, data_type=data_type)
+            hk_header["DATE-BEG"] = (date_beg.fits, get_comment("DATE-BEG"))
+            hk_header["DATEREF"] = (date_beg.fits, get_comment("DATEREF"))
+            hk_header["FILENAME"] = (path, get_comment("FILENAME"))
+
+            hk_hdu = fits.BinTableHDU(data=data_table, header=hk_header, name="HK")
+            hk_hdu.add_checksum()
+            hdul = fits.HDUList([empty_primary_hdu, hk_hdu])
+            hdul.writeto(path, overwrite=overwrite, checksum=True)
+            hdul.close()
+            output_files.append(path)
+        else: 
+            # If not outputting FITS, return a `None` placeholder
+            # We don't want to return an empty list as that would imply no processing was done
+            # We also don't want to return the original filename as an output
+            output_files.append(None)
 
     # add other tasks below
     return output_files
