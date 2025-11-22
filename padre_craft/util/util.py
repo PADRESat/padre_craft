@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import numpy as np
+from astropy.table import Table
 from astropy.time import Time
 from astropy.timeseries import TimeSeries
 from swxsoc.util import create_science_filename, parse_science_filename
@@ -61,6 +63,29 @@ def convert_meddea_colnames(ts: TimeSeries):
         if obc_col in ts.colnames:
             ts.rename_column(obc_col, meddea_col)
     return ts
+
+
+def remove_bad_data(ts: TimeSeries) -> TimeSeries:
+    """Given a padre craft timeseries, remove all rows with bad data. Checks the following conditions
+    * all data rows sum to zero.
+    * remove rows with times that are in the future
+    Returns
+    -------
+    filtered_ts
+    """
+    tbl = Table(ts)
+    tbl.remove_column("time")
+    if "timestamp_ms" in tbl.colnames:
+        tbl.remove_column("timestamp_ms")
+    row_sum = np.sum([tbl[col] for col in tbl.colnames], axis=0)
+    good_times = ts.time <= Time.now()
+    filtered_index = (row_sum != 0) * good_times
+    ts_filtered = ts[filtered_index]
+    if len(ts_filtered) != len(ts):
+        log.warning(
+            f"Found {len(ts) - len(ts_filtered)} rows of bad data and removed them."
+        )
+    return ts_filtered
 
 
 def create_craft_filename(
