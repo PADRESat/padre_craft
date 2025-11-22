@@ -1,4 +1,6 @@
+import numpy as np
 import pytest
+from astropy.time import Time
 
 import padre_craft.util.util as util
 from padre_craft import _test_files_directory
@@ -66,3 +68,14 @@ def test_craft_filename_output_a(time, level, version, descriptor, result):
         == result
     )
 # fmt: on
+
+
+def test_remove_bad_data(caplog):
+    ts = read_file(
+        _test_files_directory
+        / "padre_get_MEDDEA_HOUSE_KEEPING_Data_1762493454480_1762611866270.csv"
+    )
+    ts_filtered = util.remove_bad_data(ts)
+    assert len(ts_filtered) == len(ts) - 3
+    assert np.all(ts_filtered.time <= Time.now())
+    assert "rows of bad data and removed them" in caplog.text

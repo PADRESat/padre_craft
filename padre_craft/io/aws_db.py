@@ -12,9 +12,10 @@ def record_housekeeping(hk_ts: TimeSeries, data_type):
     my_ts = hk_ts.copy()
     if data_type == "meddea":
         my_ts = util.convert_meddea_colnames(my_ts)
-        my_ts = calibrate_hk_ts(my_ts)
-        col_to_removes = ["CCSDS1", "CCSDS3", "checksum"]
+        col_to_removes = ["CCSDS1", "CCSDS3", "checksum", "timestamp_ms"]
         for this_col in col_to_removes:
             if this_col in hk_ts.colnames:
                 my_ts.remove_column(this_col)
+        my_ts = util.remove_bad_data(my_ts)
+        my_ts = calibrate_hk_ts(my_ts)
     record_timeseries(my_ts, data_type, "craft")
