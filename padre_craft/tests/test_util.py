@@ -1,6 +1,5 @@
 import numpy as np
 import pytest
-from astropy.time import Time
 
 import padre_craft.util.util as util
 from padre_craft import _test_files_directory
@@ -75,7 +74,15 @@ def test_remove_bad_data(caplog):
         _test_files_directory
         / "padre_get_MEDDEA_HOUSE_KEEPING_Data_1762493454480_1762611866270.csv"
     )
+    # Convert MEDDEA column names from OBC input to PADRE MEDDEA standard
+    ts = util.convert_meddea_colnames(ts)
+    # Remove unwanted columns
+    col_to_removes = ["CCSDS1", "CCSDS3", "checksum", "timestamp_ms"]
+    for this_col in col_to_removes:
+        if this_col in ts.colnames:
+            ts.remove_column(this_col)
     ts_filtered = util.remove_bad_data(ts)
-    assert len(ts_filtered) == len(ts) - 3
-    assert np.all(ts_filtered.time <= Time.now())
-    assert "rows of bad data and removed them" in caplog.text
+    assert len(ts_filtered) == len(ts)
+    # Assert the last 3 rows of data are all NaNs
+    print((ts_filtered["fp_temp"][-3:]))
+    assert np.all(np.isnan(ts_filtered["fp_temp"][-3:]))

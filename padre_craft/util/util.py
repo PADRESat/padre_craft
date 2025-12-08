@@ -48,8 +48,8 @@ def filename_to_datatype(filename: Path) -> str:
 
     Examples
     --------
-    >>> filename_to_datatype(Path("instrument_get_MAG_Data_20230101.cdf"))
-    'mag'
+    >>> filename_to_datatype(Path("padre_get_MEDDEA_HOUSE_KEEPING_Data_1762493454480_1762611866270.csv"))
+    'meddea'
 
     Notes
     -----

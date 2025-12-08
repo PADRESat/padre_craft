@@ -105,4 +105,4 @@ def test_record_timeseries(mocked_timestream):
     # Assert that there should be 5 records, one for each timestamp
     assert (
         len(records) == len(hk_ts.time) - 3
-    )  # removes 2 rows with zeros and one with with future time
+    )  # removes 2 rows with zeros and one with future time
