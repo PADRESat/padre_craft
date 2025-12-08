@@ -7,15 +7,39 @@ from swxsoc.util.util import record_timeseries
 import padre_craft.util.util as util
 
 
-def record_housekeeping(hk_ts: TimeSeries, data_type):
-    """Send the housekeeping time series to AWS."""
+def record_housekeeping(hk_ts: TimeSeries, data_type: str) -> None:
+    """
+    Record housekeeping time series data to AWS TimeStream database.
+    This function processes and stores housekeeping telemetry data, with special
+    handling for MEDDEA data.
+
+    Parameters
+    ----------
+    hk_ts : TimeSeries
+        The housekeeping time series data to be recorded. The original time series
+        is not modified; a copy is created for processing.
+    data_type : str
+        The type of data being recorded (e.g., "meddea"). This determines the
+        processing pipeline applied to the data.
+    """
+    # Create a copy to avoid modifying the original
     my_ts = hk_ts.copy()
+
+    # Special handling for MEDDEA data
     if data_type == "meddea":
+        # Convert MEDDEA column names from OBC input to PADRE MEDDEA standard
         my_ts = util.convert_meddea_colnames(my_ts)
+        # Remove unwanted columns
         col_to_removes = ["CCSDS1", "CCSDS3", "checksum", "timestamp_ms"]
         for this_col in col_to_removes:
             if this_col in hk_ts.colnames:
                 my_ts.remove_column(this_col)
+
+        # Fix Bad Data in the Time Series
         my_ts = util.remove_bad_data(my_ts)
+
+        # Apply calibration from padre_meddea to housekeeping data
         my_ts = calibrate_hk_ts(my_ts)
-    record_timeseries(my_ts, data_type, "craft")
+
+    # Record the Time Series in the TimeStream Database
+    record_timeseries(ts=my_ts, ts_name=data_type, instrument_name="craft")
