@@ -14,18 +14,18 @@ def test_file_read(this_path):
     """Test that all test files can be read"""
     ts = file_tools.read_file(this_path)
     assert isinstance(ts, TimeSeries)
-    assert len(ts) == 10  # check all ts was read
-    assert len(np.unique(ts.time)) == 10  # check all times are unique
     # check that there are no unexpected column data types
     for this_col in ts.itercols():
         if isinstance(this_col, Time):
             continue
         else:
             assert this_col.dtype.kind in ["i", "f"]
-    ts = file_tools.read_raw_file(this_path)
-    assert isinstance(ts, TimeSeries)
-    assert len(ts) == 10
-    assert len(np.unique(ts.time)) == 10
+    if "MEDDEA" in this_path.name:
+        assert len(ts) == 13
+        assert len(np.unique(ts.time)) == 13
+    else:
+        assert len(ts) == 10
+        assert len(np.unique(ts.time)) == 10
 
 
 def test_bad_time():

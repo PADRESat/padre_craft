@@ -20,13 +20,27 @@ __all__ = [
 
 def process_file(filename: Path, overwrite=False, output_fits=False) -> list:
     """
-    This is the entry point for the pipeline processing.
-    It runs all of the various processing steps required.
+    Process a raw data file through the calibration pipeline.
+
+    This is the entry point for the pipeline processing. It runs all of the various
+    processing steps required to convert raw CSV files into calibrated FITS files or
+    record housekeeping data in the database.
 
     Parameters
     ----------
-    data_filename: str
-        Fully specificied filename of an input file
+    filename : Path
+        Fully specified filename of an input file (e.g., a CSV file containing raw data)
+    overwrite : bool, optional
+        If True, overwrite existing output files. Default is False.
+    output_fits : bool, optional
+        If True, generate FITS file output. If False, only record housekeeping data
+        to the database. Default is False.
+
+    output_filenames : list
+        List containing fully specified filenames for the output files. If output_fits
+        is True, contains Path objects to generated FITS files. If output_fits is False,
+        contains None as a placeholder to indicate processing was completed without
+        file output.
 
     Returns
     -------
@@ -95,7 +109,7 @@ def process_file(filename: Path, overwrite=False, output_fits=False) -> list:
             hdul.writeto(path, overwrite=overwrite, checksum=True)
             hdul.close()
             output_files.append(path)
-        else: 
+        else:
             # If not outputting FITS, return a `None` placeholder
             # We don't want to return an empty list as that would imply no processing was done
             # We also don't want to return the original filename as an output

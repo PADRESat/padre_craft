@@ -18,4 +18,8 @@ def test_process_file(this_path, tmpdir, monkeypatch):
     # perform basic checks on the fits file
     hdul = fits.open(files[0])
     assert hdul[0].header["CREATOR"] == "padre_craft"
-    assert len(hdul[1].data["timestamp_ms"]) == 10
+    # MEDDEA housekeeping data has extra rows
+    if hdul[0].header["BTYPE"] == "meddea":
+        assert len(hdul[1].data["timestamp_ms"]) == 13
+    else:
+        assert len(hdul[1].data["timestamp_ms"]) == 10
