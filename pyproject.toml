@@ -33,7 +33,9 @@ dependencies = [
   'swxsoc @ git+https://github.com/swxsoc/swxsoc.git@main',
   'gitpython==3.1.*',
   'solarnet_metadata @ git+https://github.com/IHDE-Alliance/solarnet_metadata.git@solarnet_metadata_package',
-  'padre_meddea @ git+https://github.com/PADRESat/padre_meddea.git'
+  'padre_meddea @ git+https://github.com/PADRESat/padre_meddea.git',
+  'shapely==2.1.*',
+  'skyfield>=1.53'
 ]
 
 [project.optional-dependencies]
@@ -44,12 +46,13 @@ dev = [
   'pytest-cov',
   'coverage[toml]',
   'pytest-doctestplus',
+  'pytest-remotedata',
   'ruff',
 ]
 
 docs = ['sphinx', 'sphinx-automodapi', 'matplotlib', 'sphinx-copybutton', 'pydata-sphinx-theme']
 
-test = ['pytest', 'pytest-astropy', 'pytest-cov', 'coverage[toml]', 'moto',]
+test = ['pytest', 'pytest-astropy', 'pytest-cov', 'coverage[toml]', 'moto', "pytest-remotedata"]
 
 style = ['ruff']
 
@@ -67,7 +70,7 @@ testpaths = ["padre_craft/tests", "docs"]
 doctest_plus = "enabled"
 norecursedirs = ["_build"]
 text_file_format = "rst"
-addopts = "--doctest-rst --doctest-plus --doctest-report ndiff"
+addopts = "--remote-data --doctest-rst --doctest-plus --doctest-report ndiff"
 
 [tool.coverage.run]
 omit = [
