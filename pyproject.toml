@@ -8,10 +8,10 @@ description = "A Python package to process and analyze data from the PADRE space
 readme = "README.rst"
 dynamic = ["version"]
 authors = [
-  {name = "Steven Christe", email="steven.christe@nasa.gov"},
-  {name = "Andrew Robbertz", email="a.robbertz@gmail.com"},
+  { name = "Steven Christe", email = "steven.christe@nasa.gov" },
+  { name = "Andrew Robbertz", email = "a.robbertz@gmail.com" },
 ]
-license = {file = "LICENSE.rst"}
+license = { file = "LICENSE.rst" }
 requires-python = ">=3.10"
 keywords = ["nasa mission", "space weather"]
 classifiers = [
@@ -35,7 +35,7 @@ dependencies = [
   'solarnet_metadata @ git+https://github.com/IHDE-Alliance/solarnet_metadata.git@solarnet_metadata_package',
   'padre_meddea @ git+https://github.com/PADRESat/padre_meddea.git',
   'shapely==2.1.*',
-  'skyfield>=1.53'
+  'skyfield>=1.53',
 ]
 
 [project.optional-dependencies]
@@ -50,9 +50,22 @@ dev = [
   'ruff',
 ]
 
-docs = ['sphinx', 'sphinx-automodapi', 'matplotlib', 'sphinx-copybutton', 'pydata-sphinx-theme']
+docs = [
+  'sphinx',
+  'sphinx-automodapi',
+  'matplotlib',
+  'sphinx-copybutton',
+  'pydata-sphinx-theme',
+]
 
-test = ['pytest', 'pytest-astropy', 'pytest-cov', 'coverage[toml]', 'moto', "pytest-remotedata"]
+test = [
+  'pytest',
+  'pytest-astropy',
+  'pytest-cov',
+  'coverage[toml]',
+  'moto',
+  "pytest-remotedata",
+]
 
 style = ['ruff']
 
@@ -122,7 +135,7 @@ exclude = [
   "venv",
   "conftest.py",
   "conf.py",
-  "padre_craft/__init__.py"
+  "padre_craft/__init__.py",
 ]
 
 # Same as Black.

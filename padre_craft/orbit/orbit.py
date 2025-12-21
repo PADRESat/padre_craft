@@ -225,7 +225,7 @@ class PadreOrbit:
             time_start=tstart, time_delta=dt, n_samples=n_samples
         )
         t = self.ts.from_astropy(self.timeseries.time)
-        self.times = self.timeseries.time
+        self.time = self.timeseries.time
         self.geocentric = self.satellite.at(t)
         self.in_sun = self.satellite.at(t).is_sunlit(self.eph)
         geopos = skyfield.api.wgs84.geographic_position_of(self.geocentric)
@@ -260,7 +260,7 @@ class PadreOrbit:
         self.in_particles = self.in_saa | self.in_lower_belt | self.in_upper_belt
         self.good_flag = self.in_sun & ~self.in_particles
         self.timeseries = TimeSeries(
-            time=self.times,
+            time=self.time,
             data={
                 "longitude": self.longitude,
                 "latitude": self.latitude,
