@@ -12,7 +12,7 @@ from skyfield.iokit import parse_tle_file
 
 from padre_craft import NORAD_ID, _data_directory, log
 
-_all__ = ["PadreOrbit", "get_ephemeris_file", "get_latest_tle", "get_celestrak_url"]
+__all__ = ["PadreOrbit", "get_ephemeris_file", "get_latest_tle", "get_celestrak_url"]
 
 _SAA_VERTICES = np.array(
     [
