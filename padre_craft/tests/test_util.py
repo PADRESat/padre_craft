@@ -8,7 +8,8 @@ from padre_craft.io import read_file
 TIME = "2024-04-06T12:06:21"
 TIME_FORMATTED = "20240406T120621"
 
-test_file_paths = _test_files_directory.glob("*.csv")
+test_file_paths = list(_test_files_directory.glob("*.csv"))
+test_file_paths.remove(_test_files_directory / "20251219_padre_tle.csv")
 valid_datatypes = list(util.TOKEN_TO_DATATYPE.values())
 
 

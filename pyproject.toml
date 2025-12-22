@@ -8,10 +8,10 @@ description = "A Python package to process and analyze data from the PADRE space
 readme = "README.rst"
 dynamic = ["version"]
 authors = [
-  {name = "Steven Christe", email="steven.christe@nasa.gov"},
-  {name = "Andrew Robbertz", email="a.robbertz@gmail.com"},
+  { name = "Steven Christe", email = "steven.christe@nasa.gov" },
+  { name = "Andrew Robbertz", email = "a.robbertz@gmail.com" },
 ]
-license = {file = "LICENSE.rst"}
+license = { file = "LICENSE.rst" }
 requires-python = ">=3.10"
 keywords = ["nasa mission", "space weather"]
 classifiers = [
@@ -30,10 +30,13 @@ dependencies = [
   'numpy==2.*',
   'sunpy==6.*',
   'matplotlib==3.10.*',
+  'basemap',
   'swxsoc @ git+https://github.com/swxsoc/swxsoc.git@main',
   'gitpython==3.1.*',
   'solarnet_metadata @ git+https://github.com/IHDE-Alliance/solarnet_metadata.git@solarnet_metadata_package',
-  'padre_meddea @ git+https://github.com/PADRESat/padre_meddea.git'
+  'padre_meddea @ git+https://github.com/PADRESat/padre_meddea.git',
+  'shapely',
+  'skyfield>=1.53',
 ]
 
 [project.optional-dependencies]
@@ -44,12 +47,27 @@ dev = [
   'pytest-cov',
   'coverage[toml]',
   'pytest-doctestplus',
+  'pytest-remotedata',
   'ruff',
 ]
 
-docs = ['sphinx', 'sphinx-automodapi', 'matplotlib', 'sphinx-copybutton', 'pydata-sphinx-theme']
+docs = [
+  'sphinx',
+  'sphinx-automodapi',
+  'matplotlib',
+  'sphinx-copybutton',
+  'pydata-sphinx-theme',
+]
 
-test = ['pytest', 'pytest-astropy', 'pytest-cov', 'coverage[toml]', 'moto',]
+test = [
+  'pytest',
+  'pytest-astropy',
+  'pytest-cov',
+  'coverage[toml]',
+  'moto',
+  "pytest-remotedata",
+  "pytest-doctestplus",
+]
 
 style = ['ruff']
 
@@ -63,11 +81,11 @@ packages = ["padre_craft"]
 write_to = "padre_craft/_version.py"
 
 [tool.pytest.ini_options]
+addopts = '--remote-data --doctest-rst --doctest-plus --doctest-modules  --doctest-report=udiff'
 testpaths = ["padre_craft/tests", "docs"]
 doctest_plus = "enabled"
 norecursedirs = ["_build"]
 text_file_format = "rst"
-addopts = "--doctest-rst --doctest-plus --doctest-report ndiff"
 
 [tool.coverage.run]
 omit = [
@@ -119,7 +137,7 @@ exclude = [
   "venv",
   "conftest.py",
   "conf.py",
-  "padre_craft/__init__.py"
+  "padre_craft/__init__.py",
 ]
 
 # Same as Black.

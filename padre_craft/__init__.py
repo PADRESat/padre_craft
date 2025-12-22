@@ -31,4 +31,6 @@ _test_files_directory = _package_directory / "data" / "test"
 
 LAUNCH_DATE = Time('2025-07-23T00:00')
 
+NORAD_ID = 64559
+
 log.debug(f"padre_craft version: {__version__}")

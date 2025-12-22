@@ -43,3 +43,8 @@ def record_housekeeping(hk_ts: TimeSeries, data_type: str) -> None:
 
     # Record the Time Series in the TimeStream Database
     record_timeseries(ts=my_ts, ts_name=data_type, instrument_name="craft")
+
+
+def record_orbit(padre_orbit_ts: TimeSeries) -> None:
+    """Send the orbit time series to AWS."""
+    record_timeseries(padre_orbit_ts, "orbit", "craft")
