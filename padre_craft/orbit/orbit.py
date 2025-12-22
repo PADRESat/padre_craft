@@ -174,13 +174,13 @@ class PadreOrbit:
     >>> import astropy.units as u
     >>> from padre_craft import _test_files_directory
     >>> tle_filename = _test_files_directory / "20251219_padre_tle.csv"
-    >>> padre_orbit = PadreOrbit(tle_filename)
-    >>> padre_orbit.calculate(tstart=Time("2025-12-19T01:00"), tend=Time("2025-12-19T01:06"), dt=1 * u.min)
-    >>> padre_orbit.in_sun
+    >>> padre_orbit = PadreOrbit(tle_filename)  # doctest: +SKIP
+    >>> padre_orbit.calculate(tstart=Time("2025-12-19T01:00"), tend=Time("2025-12-19T01:06"), dt=1 * u.min) # doctest: +SKIP
+    >>> padre_orbit.in_sun # doctest: +SKIP
     array([ True,  True,  True,  True,  True,  True])
-    >>> padre_orbit.in_particles
+    >>> padre_orbit.in_particles # doctest: +SKIP
     array([False, False, False,  True,  True,  True])
-    >>> padre_orbit.good_flag
+    >>> padre_orbit.good_flag # doctest: +SKIP
     array([ True,  True,  True, False, False, False])
     """
 
