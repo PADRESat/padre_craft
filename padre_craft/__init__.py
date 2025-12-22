@@ -29,7 +29,7 @@ _package_directory = Path(__file__).parent
 _data_directory = _package_directory / "data"
 _test_files_directory = _package_directory / "data" / "test"
 
-launch_date = Time('2025-07-23T00:00')
+LAUNCH_DATE = Time('2025-07-23T00:00')
 
 NORAD_ID = 64559
 

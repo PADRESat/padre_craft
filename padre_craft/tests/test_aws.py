@@ -12,6 +12,8 @@ from moto.timestreamwrite.models import timestreamwrite_backends
 from padre_meddea.housekeeping.calibration import get_calibration_func
 
 import padre_craft.io.aws_db as aws
+from padre_craft import _test_files_directory
+from padre_craft.io import read_file
 
 
 @pytest.fixture(scope="function")
@@ -87,3 +89,20 @@ def test_record_timeseries_quantity_1col(mocked_timestream):
             "MeasureValue does not match"
         )
         assert temp4_measure["Type"] == "DOUBLE", "MeasureValueType does not match"
+
+
+def test_record_timeseries(mocked_timestream):
+    hk_ts = read_file(
+        _test_files_directory
+        / "padre_get_MEDDEA_HOUSE_KEEPING_Data_1762493454480_1762611866270.csv"
+    )
+    aws.record_housekeeping(hk_ts, "meddea")
+    database_name = "dev-padre_sdc_aws_logs"
+    table_name = "dev-padre_measures_table"
+
+    backend = timestreamwrite_backends[ACCOUNT_ID]["us-east-1"]
+    records = backend.databases[database_name].tables[table_name].records
+    # Assert that there should be 5 records, one for each timestamp
+    assert (
+        len(records) == len(hk_ts.time) - 3
+    )  # removes 2 rows with zeros and one with future time
