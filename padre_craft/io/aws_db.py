@@ -1,6 +1,7 @@
 """Provides functions to upload data to the time series database for display"""
 
 from astropy.timeseries import TimeSeries
+from padre_meddea.housekeeping.calibration import calibrate_hk_ts
 from swxsoc.util.util import record_timeseries
 
 import padre_craft.util.util as util
@@ -33,9 +34,17 @@ def record_housekeeping(hk_ts: TimeSeries, data_type: str) -> None:
         for this_col in col_to_removes:
             if this_col in hk_ts.colnames:
                 my_ts.remove_column(this_col)
-    record_timeseries(my_ts, data_type, "craft")
+
+        # Fix Bad Data in the Time Series
+        my_ts = util.remove_bad_data(my_ts)
+
+        # Apply calibration from padre_meddea to housekeeping data
+        my_ts = calibrate_hk_ts(my_ts)
+
+    # Record the Time Series in the TimeStream Database
+    record_timeseries(ts=my_ts, ts_name=data_type, instrument_name="craft")
 
 
-def record_orbit(padre_orbit_ts: TimeSeries):
+def record_orbit(padre_orbit_ts: TimeSeries) -> None:
     """Send the orbit time series to AWS."""
     record_timeseries(padre_orbit_ts, "orbit", "craft")
