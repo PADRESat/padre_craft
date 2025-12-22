@@ -1,4 +1,5 @@
 import csv
+import os
 import urllib.request
 from pathlib import Path
 
@@ -92,13 +93,19 @@ def vertices_to_polygon(vertices: np.array) -> geometry.Polygon:
     return poly
 
 
-def get_ephemeris_file():
+def get_ephemeris_file(download_if_missing: bool = True) -> Path:
     """Get the path to the ephemeris file. If it does not exist, download it from JPL and put it into the data directory"""
     filename = "de421.bsp"
-    file_path = _data_directory / filename
+    # Check if the LAMBDA_ENVIRONMENT environment variable is set
+    lambda_environment = os.getenv("LAMBDA_ENVIRONMENT")
+    if lambda_environment:
+        # If running in AWS Lambda, check the /tmp directory
+        file_path = Path("/tmp") / filename
+    else:
+        file_path = _data_directory / filename
     if file_path.exists():
         return file_path
-    else:
+    elif download_if_missing:
         url = f"https://ssd.jpl.nasa.gov/ftp/eph/planets/bsp/{filename}"
         log.info(f"{filename} is not found. Downloading from {url}")
         urllib.request.urlretrieve(url, filename)
@@ -106,6 +113,9 @@ def get_ephemeris_file():
         new_path = _data_directory / filename
         Path(filename).replace(new_path)
         return new_path
+    else:
+        log.warning(f"{filename} not found and download_if_missing is False.")
+        return None
 
 
 def get_latest_tle() -> Path:
@@ -120,7 +130,7 @@ def get_latest_tle() -> Path:
     filename = Path(f"{Time.now().iso.replace('-', '')[0:8]}_padre_tle.csv")
     file_path = _data_directory / filename
     if not file_path.exists():
-        log.info(f"{filename} is not found. Downloading from {url}")
+        log.info(f"Existing {filename} is not found. Downloading from {url}")
         urllib.request.urlretrieve(url, filename)
         Path(filename).replace(file_path)
     return file_path
@@ -177,6 +187,9 @@ class PadreOrbit:
     def __init__(self, tle_filename=None):
         self.ts = skyfield.api.load.timescale()
         self.satellite = None
+        self.timeseries = None
+        self.calculated = False
+        self.time = None
         if tle_filename:
             if isinstance(tle_filename, str):
                 tle_filename = Path(tle_filename)
@@ -219,7 +232,7 @@ class PadreOrbit:
             raise ValueError(
                 f"Times provided too far from tle epoch {self.satellite.epoch}"
             )
-
+        self.calculated = True
         n_samples = np.ceil(((tend - tstart) / dt).decompose().value).astype(np.uint)
         self.timeseries = TimeSeries(
             time_start=tstart, time_delta=dt, n_samples=n_samples
@@ -272,3 +285,96 @@ class PadreOrbit:
                 "in_lower_belt": self.in_lower_belt,
             },
         )
+        self.calculated = True
+
+    def plot_geolocation(self):
+        if self.calculated:
+            import matplotlib.pyplot as plt
+            from matplotlib import colormaps
+            from mpl_toolkits.basemap import Basemap
+
+            cm = colormaps["rainbow"]
+            colorlist = (self.time.jd - self.time[0].jd) / (
+                self.time[-1].jd - self.time[0].jd
+            )
+            m = Basemap(projection="mill", lon_0=0, resolution="c")
+            m.drawcoastlines()
+            # draw parallels and meridians.
+            m.drawparallels(np.arange(-90.0, 120.0, 30.0))
+            m.drawmeridians(np.arange(0.0, 360.0, 60.0))
+            m.scatter(
+                self.longitude,
+                self.latitude.value,
+                latlon=True,
+                marker="o",
+                c=colorlist,
+                cmap=cm,
+            )
+            m.plot(*self.polys["saa"].exterior.xy, color="red", latlon=True)
+            m.plot(*self.polys["upper_belt"].exterior.xy, color="red", latlon=True)
+            m.plot(*self.polys["lower_belt"].exterior.xy, color="red", latlon=True)
+            m.colorbar(label="Normalized Time")
+            m.nightshade(self.time[0].to_datetime())
+            plt.title(f"Padre Craft Orbit from {self.time[0]} to {self.time[-1]}")
+            plt.show()
+
+    def plot_state(self):
+        """Plot the orbit state as a function of time."""
+        import matplotlib.pyplot as plt
+
+        fig = plt.figure(figsize=(11, 5))
+        ylabel = [
+            "In Sunlight",
+            "In SAA",
+            "In Lower Belt",
+            "In Upper Belt",
+            "In Particles",
+            "Good Flag",
+        ]  # y axis labels for subplots
+        state_vals = [
+            self.in_sun.astype(int),
+            self.in_saa.astype(int),
+            self.in_lower_belt.astype(int),
+            self.in_upper_belt.astype(int),
+            self.in_particles.astype(int),
+            self.good_flag.astype(int),
+        ]
+        color_list = [
+            "C0",
+            "C1",
+            "C2",
+            "C3",
+            "C4",
+            "C5",
+            "C6",
+            "C7",
+            "C8",
+            "C9",
+        ]  # colors for plot lines
+
+        axs = fig.subplots(len(ylabel), sharex=True, sharey=False)
+        line_list = []  # empty list of plot lines for figure legend
+
+        # y values for each subplot
+        for i, a in enumerate(axs):  # for each subplot
+            line = a.fill_between(
+                self.time.to_datetime(),
+                state_vals[i],
+                y2=0,
+                color=color_list[i],
+                step="post",
+                label=ylabel[i],
+            )
+            line_list.append(line)  # save handle for fig legend
+            # a.set_yticks([0, 1], ['Off', 'On'])
+            a.grid(color="lightgray")
+            a.set_xlabel("Seconds")
+            a.minorticks_on()
+            a.set_ylim(0, 1)
+            a.tick_params(
+                axis="y", which="minor", length=0
+            )  # hide minor ticks on y axis
+            a.label_outer()  # axis labels on left and bottom sides of subplots
+
+        plt.figlegend(handles=line_list, loc="right")  # overall figure legend
+        plt.show()

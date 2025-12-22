@@ -18,3 +18,8 @@ def record_housekeeping(hk_ts: TimeSeries, data_type):
             if this_col in hk_ts.colnames:
                 my_ts.remove_column(this_col)
     record_timeseries(my_ts, data_type, "craft")
+
+
+def record_orbit(padre_orbit_ts: TimeSeries):
+    """Send the orbit time series to AWS."""
+    record_timeseries(padre_orbit_ts, "orbit", "craft")

@@ -30,11 +30,12 @@ dependencies = [
   'numpy==2.*',
   'sunpy==6.*',
   'matplotlib==3.10.*',
+  'basemap',
   'swxsoc @ git+https://github.com/swxsoc/swxsoc.git@main',
   'gitpython==3.1.*',
   'solarnet_metadata @ git+https://github.com/IHDE-Alliance/solarnet_metadata.git@solarnet_metadata_package',
   'padre_meddea @ git+https://github.com/PADRESat/padre_meddea.git',
-  'shapely==2.1.*',
+  'shapely',
   'skyfield>=1.53',
 ]
 
@@ -65,6 +66,7 @@ test = [
   'coverage[toml]',
   'moto',
   "pytest-remotedata",
+  "pytest-doctestplus",
 ]
 
 style = ['ruff']
@@ -79,11 +81,11 @@ packages = ["padre_craft"]
 write_to = "padre_craft/_version.py"
 
 [tool.pytest.ini_options]
+addopts = '--remote-data --doctest-rst --doctest-plus --doctest-modules  --doctest-report=udiff'
 testpaths = ["padre_craft/tests", "docs"]
 doctest_plus = "enabled"
 norecursedirs = ["_build"]
 text_file_format = "rst"
-addopts = "--remote-data --doctest-rst --doctest-plus --doctest-report ndiff"
 
 [tool.coverage.run]
 omit = [
