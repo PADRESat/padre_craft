@@ -128,7 +128,12 @@ def get_latest_tle() -> Path:
     """
     url = get_celestrak_url(format="csv")
     filename = Path(f"{Time.now().iso.replace('-', '')[0:8]}_padre_tle.csv")
-    file_path = _data_directory / filename
+    lambda_environment = os.getenv("LAMBDA_ENVIRONMENT")
+    if lambda_environment:
+        # If running in AWS Lambda, check the /tmp directory
+        file_path = Path("/tmp") / filename
+    else:
+        file_path = _data_directory / filename
     if not file_path.exists():
         log.info(f"Existing {filename} is not found. Downloading from {url}")
         urllib.request.urlretrieve(url, filename)
