@@ -13,6 +13,7 @@ from padre_meddea.housekeeping.calibration import get_calibration_func
 
 import padre_craft.io.aws_db as aws
 from padre_craft import _test_files_directory
+from padre_craft.dirlist.dirlist import read_dirlist, summarize_dirlist
 from padre_craft.io import read_file
 
 
@@ -106,3 +107,64 @@ def test_record_timeseries(mocked_timestream):
     assert (
         len(records) == len(hk_ts.time) - 3
     )  # removes 2 rows with zeros and one with future time
+
+
+def test_record_dirlist(mocked_timestream):
+    """Test recording dirlist summary to AWS Timestream."""
+    # Read dirlist file and create summary
+    test_dirlist_file = _test_files_directory / "padre_craft_dirlist_022426.txt"
+    file_list = read_dirlist(test_dirlist_file)
+    dirlist_summary = summarize_dirlist(file_list)
+
+    # Record to AWS
+    aws.record_dirlist(dirlist_summary)
+
+    database_name = "dev-padre_sdc_aws_logs"
+    table_name = "dev-padre_measures_table"
+
+    backend = timestreamwrite_backends[ACCOUNT_ID]["us-east-1"]
+    records = backend.databases[database_name].tables[table_name].records
+
+    # Assert that there should be 1 record (one row in summary table)
+    assert len(records) == len(dirlist_summary)
+    assert len(records) == 1
+
+    # Check the record details
+    record = records[0]
+    assert record["MeasureName"] == "dirlist"
+
+    # Check that measure values contain expected columns
+    measure_values = record["MeasureValues"]
+    measure_names = [mv["Name"] for mv in measure_values]
+
+    # Verify all expected columns are present
+    expected_columns = [
+        "file_count_meddea",
+        "file_count_meddea_photon",
+        "file_count_meddea_spectrum",
+        "file_count_meddea_hk",
+        "file_count_sharp",
+        "file_count_total",
+        "size_meddea",
+        "size_meddea_photon",
+        "size_meddea_spectrum",
+        "size_meddea_hk",
+        "size_sharp",
+        "size_total",
+    ]
+
+    for col in expected_columns:
+        assert col in measure_names, f"{col} not found in measure values"
+
+    # Verify some specific values
+    file_count_total = next(
+        (mv for mv in measure_values if mv["Name"] == "file_count_total"), None
+    )
+    assert file_count_total is not None
+    assert file_count_total["Value"] == str(dirlist_summary["file_count_total"][0])
+
+    file_count_meddea = next(
+        (mv for mv in measure_values if mv["Name"] == "file_count_meddea"), None
+    )
+    assert file_count_meddea is not None
+    assert file_count_meddea["Value"] == str(dirlist_summary["file_count_meddea"][0])

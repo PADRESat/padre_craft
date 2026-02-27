@@ -1,5 +1,6 @@
 """Provides functions to upload data to the time series database for display"""
 
+from astropy.table import QTable
 from astropy.timeseries import TimeSeries
 from padre_meddea.housekeeping.calibration import calibrate_hk_ts
 from swxsoc.util.util import record_timeseries
@@ -48,3 +49,7 @@ def record_housekeeping(hk_ts: TimeSeries, data_type: str) -> None:
 def record_orbit(padre_orbit_ts: TimeSeries) -> None:
     """Send the orbit time series to AWS."""
     record_timeseries(padre_orbit_ts, "orbit", "craft")
+
+
+def record_dirlist(dirlist_summary_ts: QTable) -> None:
+    record_timeseries(ts=dirlist_summary_ts, ts_name="dirlist", instrument_name="craft")

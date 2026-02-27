@@ -12,6 +12,54 @@ from astropy.timeseries import TimeSeries
 from padre_craft.orbit import PadreOrbit
 
 
+def parse_dirlist_filename_time(dirlist_file):
+    """
+    Parse the dirlist filename and return an astropy Time object.
+
+    Supports multiple filename formats:
+    - MMDDYY: 6-digit date format (e.g., 022426 for Feb 24, 2026)
+
+    Parameters
+    ----------
+    dirlist_file : str or Path
+        Path to the DirList file. The filename should contain a date/datetime string.
+
+    Returns
+    -------
+    time : astropy.time.Time
+        The parsed time from the filename in UTC scale.
+
+    Examples
+    --------
+    >>> parse_dirlist_filename_time("Dirlist_Full_022426.txt")
+    <Time object: scale='utc' format='iso' value=2026-02-24 00:00:00.000>
+    >>> parse_dirlist_filename_time("padre_craft_dirlist_022426.txt")
+    <Time object: scale='utc' format='iso' value=2026-02-24 00:00:00.000>
+    >>> from pathlib import Path
+    >>> parse_dirlist_filename_time(Path("test_dirlist_022426.txt"))
+    <Time object: scale='utc' format='iso' value=2026-02-24 00:00:00.000>
+    """
+    filename = str(dirlist_file)
+
+    # Try to find a 6-digit date string (MMDDYY)
+    match_short = re.search(r"(\d{6})", filename)
+    if match_short:
+        date_str = match_short.group(1)
+        month = date_str[0:2]
+        day = date_str[2:4]
+        year_2digit = int(date_str[4:6])
+        # Assume 2000s for year
+        year = 2000 + year_2digit
+        iso_str = f"{year:04d}-{month}-{day} 00:00:00"
+        return Time(iso_str, format="iso", scale="utc")
+
+    # If no recognizable date pattern is found
+    raise ValueError(
+        f"Could not parse date from filename: {filename}. "
+        "Expected format: MMDDYY (6 digits) or YYYYMMDDHHMMSS (14 digits)."
+    )
+
+
 def read_dirlist(dirlist_file):
     """
     Reads a DirList file and returns a QTable with the file information.
@@ -42,7 +90,68 @@ def read_dirlist(dirlist_file):
     # filter out files with size = 0 bytes
     bool_array = file_list["size(in bytes)"] > 0 * u.MB
     file_list = file_list[bool_array]
+    file_list.meta["filename"] = str(dirlist_file)
+    file_list.meta["time"] = parse_dirlist_filename_time(dirlist_file).isot
     return file_list
+
+
+def summarize_dirlist(file_list):
+    """
+    Summarizes the file information from a DirList QTable, including total size and number of files.
+
+    Parameters
+    ---
+    file_list: QTable
+        Table containing the file information from the DirList, including "size(in bytes)", "file_name", "timestamp", and "attributes" columns.
+        The table metadata should contain "time" and "filename" keys.
+
+    Returns
+    ---
+    summary: QTable
+        Table containing a summary row with the dirlist time, file counts by type (MeDDEA, SHARP, Total),
+        MeDDEA counts by data type (photon, spectrum, housekeeping), and sizes by type (MeDDEA, SHARP, Total),
+        plus MeDDEA size breakdowns by data type (photon, spectrum, housekeeping).
+    """
+    # Get the dirlist time from metadata
+    dirlist_time = Time(file_list.meta.get("time", None), format="isot", scale="utc")
+
+    # Use the MeDDEAFileList and SHARPFileList classes to get counts and sizes
+    meddea_list = MeDDEAFileList(file_list)
+    sharp_list = SHARPFileList(file_list)
+
+    num_meddea = len(meddea_list.file_list)
+    num_meddea_photon = len(meddea_list.ph_files)
+    num_meddea_spectrum = len(meddea_list.spec_files)
+    num_meddea_hk = len(meddea_list.hk_files)
+    num_sharp = len(sharp_list.file_list)
+    num_total = len(file_list)
+
+    # Calculate sizes using the class methods
+    meddea_size = meddea_list.total_size()
+    meddea_photon_size = meddea_list.total_size(data_type="photon")
+    meddea_spectrum_size = meddea_list.total_size(data_type="spectrum")
+    meddea_hk_size = meddea_list.total_size(data_type="hk")
+    sharp_size = sharp_list.total_size()
+    total_size = np.sum(file_list["size(in bytes)"])
+
+    # Create summary table
+    summary = TimeSeries()
+    summary["time"] = [dirlist_time]
+    summary["filename"] = [file_list.meta.get("filename", "unknown")]
+    summary["file_count_meddea"] = [num_meddea]
+    summary["file_count_meddea_photon"] = [num_meddea_photon]
+    summary["file_count_meddea_spectrum"] = [num_meddea_spectrum]
+    summary["file_count_meddea_hk"] = [num_meddea_hk]
+    summary["file_count_sharp"] = [num_sharp]
+    summary["file_count_total"] = [num_total]
+    summary["size_meddea"] = [meddea_size.to(u.MB).value]
+    summary["size_meddea_photon"] = [meddea_photon_size.to(u.MB).value]
+    summary["size_meddea_spectrum"] = [meddea_spectrum_size.to(u.MB).value]
+    summary["size_meddea_hk"] = [meddea_hk_size.to(u.MB).value]
+    summary["size_sharp"] = [sharp_size.to(u.MB).value]
+    summary["size_total"] = [total_size.to(u.MB).value]
+
+    return summary
 
 
 class MeDDEAFileList:
