@@ -22,10 +22,52 @@ class DirList:
 
     Example
     -------
-
+    >>> from padre_craft.dirlist import DirList
+    >>> from padre_craft import _test_files_directory
+    >>> dirlist = DirList(_test_files_directory / "padre_craft_dirlist_1772908542.txt")
+    FileList padre_craft_dirlist_1772908542.txt created on 2026-03-07T18:35:42.000.
+    Total size: 861.72 Mbyte
+            name                 size
+                                Mbyte
+    ----------------------- ------------------
+                    total  861.7198229999999
+    padre_craft_padre_craft  53.62375699999999
+            meddea_photon 335.56548599999996
+                meddea_hk 31.637251999999997
+            meddea_spectrum         346.504554
+                sharp_162  94.38867800000001
+                sharp_160            9.6e-05:
+            name          count
+    ----------------------- -----
+                    total   107
+    padre_craft_padre_craft    27
+            meddea_photon    32
+                meddea_hk     4
+            meddea_spectrum    33
+                sharp_162    10
+                sharp_160     1
+        file_name       size(in bytes) attributes timestamp         size            file_create_time     instrument  data_type      
+                                                                    Mbyte
+    -------------------- -------------- ---------- ---------- ------------------ ----------------------- ----------- -----------     
+    MDA0260121102925.dat       10486878          f 1769033135 10.486877999999999 2026-01-21T22:05:35.000      meddea      photon     
+    MDA2260121102639.dat       10500138          f 1769033132          10.500138 2026-01-21T22:05:32.000      meddea    spectrum     
+    MDA0260121111943.dat       10486674          f 1769033134 10.486673999999999 2026-01-21T22:05:34.000      meddea      photon     
+    MDA2260121113739.dat       10500138          f 1769033136          10.500138 2026-01-21T22:05:36.000      meddea    spectrum     
+    MDA0260121120821.dat       10486794          f 1769033139          10.486794 2026-01-21T22:05:39.000      meddea      photon     
+    MDA0260121125356.dat       10486796          f 1769033141          10.486796 2026-01-21T22:05:41.000      meddea      photon     
+    MDA2260121124839.dat       10500138          f 1769033143          10.500138 2026-01-21T22:05:43.000      meddea    spectrum     
+                    ...            ...        ...        ...                ...                     ...         ...         ...     
+    SP16260209014954.dat       10486126          f 1770624353 10.486125999999999 2026-02-09T08:05:53.000       sharp         162     
+        21770609602.tlm        2129968          f 1770609602           2.129968 2026-02-09T04:00:02.000 padre_craft padre_craft     
+    MDA0260209031209.dat       10486296          f 1770624355          10.486296 2026-02-09T08:05:55.000      meddea      photon     
+    MDA0260223171315.dat       10486782          f 1771884374          10.486782 2026-02-23T22:06:14.000      meddea      photon     
+        41771797602.tlm         705837          f 1771797623 0.7058369999999999 2026-02-22T22:00:23.000 padre_craft padre_craft     
+    MDU8251128215238.dat       10486782          f 1771797623          10.486782 2026-02-22T22:00:23.000      meddea          hk     
+    MDU8260112202934.dat       10485870          f 1768791958           10.48587 2026-01-19T03:05:58.000      meddea          hk     
+    Length = 107 rows
     """
 
-    def __init__(self, file_path):
+    def __init__(self, file_path: str | Path):
         if not isinstance(file_path, Path):
             file_path = Path(file_path)
         file_list = QTable(
@@ -40,9 +82,9 @@ class DirList:
                 },
             )
         )
-        file_list["size(in bytes)"] = (file_list["size(in bytes)"] * u.byte).to(u.MB)
+        file_list["size"] = (file_list["size(in bytes)"] * u.byte).to(u.MB)
         # filter out files with size = 0 bytes
-        bool_array = file_list["size(in bytes)"] > 0 * u.MB
+        bool_array = file_list["size"] > 0 * u.MB
         file_list = file_list[bool_array]
         file_create_times = Time(file_list["timestamp"], format="unix", scale="utc")
         file_create_times.format = "isot"
@@ -118,20 +160,20 @@ class DirList:
 
     def _file_size_dict(self):
         result = {}
-        result.update({"total": np.sum(self.file_list["size(in bytes)"])})
+        result.update({"total": np.sum(self.file_list["size"])})
         for this_instrument, these_data_types in self._all_instr_data_types.items():
             for this_data_type in these_data_types:
                 these_files = self.file_list[
                     (self.file_list["instrument"] == this_instrument)
                     & (self.file_list["data_type"] == this_data_type)
                 ]
-                total_size = np.sum(these_files["size(in bytes)"])
+                total_size = np.sum(these_files["size"])
                 result.update({f"{this_instrument}_{this_data_type}": total_size})
         return result
 
     def _file_count_dict(self):
         result = {}
-        result.update({"total": len(self.file_list["size(in bytes)"])})
+        result.update({"total": len(self.file_list["size"])})
         for this_instrument, these_data_types in self._all_instr_data_types.items():
             for this_data_type in these_data_types:
                 these_files = self.file_list[

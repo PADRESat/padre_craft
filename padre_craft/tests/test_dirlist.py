@@ -29,7 +29,7 @@ def test_dirlist_class(dir_list):
 def test_dirlist_contents(dir_list):
     assert dir_list._file_size_dict()["total"] > 840 * u.MB
     assert dir_list._file_size_dict()["total"] == np.sum(
-        dir_list.file_list["size(in bytes)"]
+        dir_list.file_list["size"]
     )
     assert dir_list.file_list.meta["filename"] == str(test_file)
     assert dir_list.file_list.meta["time"] == "2026-03-07T18:35:42.000"
