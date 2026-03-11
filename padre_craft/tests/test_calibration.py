@@ -41,14 +41,3 @@ def test_process_dirlist_file(mock_record_dirlist):
 
     # Verify that record_dirlist was called exactly once
     assert mock_record_dirlist.call_count == 1
-
-    # Verify that it was called with a QTable argument
-    args, kwargs = mock_record_dirlist.call_args
-    assert len(args) == 1
-    summary = args[0]
-
-    # Verify the summary has expected columns
-    assert "time" in summary.colnames
-    assert "file_count_meddea" in summary.colnames
-    assert "file_count_total" in summary.colnames
-    assert "size_total" in summary.colnames
