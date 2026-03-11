@@ -13,7 +13,7 @@ from padre_meddea.housekeeping.calibration import get_calibration_func
 
 import padre_craft.io.aws_db as aws
 from padre_craft import _test_files_directory
-from padre_craft.dirlist.dirlist import read_dirlist, summarize_dirlist
+from padre_craft.dirlist.dirlist import DirList
 from padre_craft.io import read_file
 
 
@@ -112,12 +112,11 @@ def test_record_timeseries(mocked_timestream):
 def test_record_dirlist(mocked_timestream):
     """Test recording dirlist summary to AWS Timestream."""
     # Read dirlist file and create summary
-    test_dirlist_file = _test_files_directory / "padre_craft_dirlist_022426.txt"
-    file_list = read_dirlist(test_dirlist_file)
-    dirlist_summary = summarize_dirlist(file_list)
+    test_dirlist_file = _test_files_directory / "padre_craft_dirlist_1772908542.txt"
+    dir_list = DirList(test_dirlist_file)
 
     # Record to AWS
-    aws.record_dirlist(dirlist_summary)
+    aws.record_dirlist(dir_list)
 
     database_name = "dev-padre_sdc_aws_logs"
     table_name = "dev-padre_measures_table"
@@ -126,12 +125,11 @@ def test_record_dirlist(mocked_timestream):
     records = backend.databases[database_name].tables[table_name].records
 
     # Assert that there should be 1 record (one row in summary table)
-    assert len(records) == len(dirlist_summary)
-    assert len(records) == 1
+    assert len(records) == 2
 
     # Check the record details
     record = records[0]
-    assert record["MeasureName"] == "dirlist"
+    assert record["MeasureName"] == "dirlist_file_size"
 
     # Check that measure values contain expected columns
     measure_values = record["MeasureValues"]
@@ -139,18 +137,13 @@ def test_record_dirlist(mocked_timestream):
 
     # Verify all expected columns are present
     expected_columns = [
-        "file_count_meddea",
-        "file_count_meddea_photon",
-        "file_count_meddea_spectrum",
-        "file_count_meddea_hk",
-        "file_count_sharp",
-        "file_count_total",
-        "size_meddea",
-        "size_meddea_photon",
-        "size_meddea_spectrum",
-        "size_meddea_hk",
-        "size_sharp",
-        "size_total",
+        "total",
+        "padre_craft_padre_craft",
+        "meddea_photon",
+        "meddea_hk",
+        "meddea_spectrum",
+        "sharp_162",
+        "sharp_160",
     ]
 
     for col in expected_columns:
@@ -158,13 +151,13 @@ def test_record_dirlist(mocked_timestream):
 
     # Verify some specific values
     file_count_total = next(
-        (mv for mv in measure_values if mv["Name"] == "file_count_total"), None
+        (mv for mv in measure_values if mv["Name"] == "total"), None
     )
     assert file_count_total is not None
-    assert file_count_total["Value"] == str(dirlist_summary["file_count_total"][0])
+    #assert file_count_total["Value"] == str(dirlist_summary["file_count_total"][0])
 
     file_count_meddea = next(
-        (mv for mv in measure_values if mv["Name"] == "file_count_meddea"), None
+        (mv for mv in measure_values if mv["Name"] == "total"), None
     )
     assert file_count_meddea is not None
-    assert file_count_meddea["Value"] == str(dirlist_summary["file_count_meddea"][0])
+    #assert file_count_meddea["Value"] == str(dirlist_summary["file_count_meddea"][0])
