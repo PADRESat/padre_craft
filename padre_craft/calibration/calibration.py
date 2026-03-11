@@ -9,7 +9,7 @@ from astropy.table import Table
 
 import padre_craft.io.aws_db as aws_db
 from padre_craft import log
-from padre_craft.dirlist.dirlist import read_dirlist, summarize_dirlist
+from padre_craft.dirlist.dirlist import DirList
 from padre_craft.io import file_tools
 from padre_craft.io.fits_tools import get_comment, get_obs_header, get_primary_header
 from padre_craft.util.util import create_craft_filename
@@ -118,11 +118,9 @@ def process_file(filename: Path, overwrite=False, output_fits=False) -> list:
     elif file_path.suffix.lower() in [".txt"] and "dirlist" in file_path.name.lower():
         # Process dirlist file
         log.info(f"Processing dirlist file {filename}")
-        file_list = read_dirlist(file_path)
-        dirlist_summary = summarize_dirlist(file_list)
-
+        dir_list = DirList(file_path)
         # Send to AWS
-        aws_db.record_dirlist(dirlist_summary)
+        aws_db.record_dirlist(dir_list)
 
         log.info(f"Dirlist summary recorded to AWS for {filename}")
         output_files.append(None)
