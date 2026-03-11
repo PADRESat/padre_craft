@@ -48,7 +48,7 @@ def test_orbit_calculate(padre_orbit):
         tstart=Time("2025-12-19T00:00"), tend=Time("2025-12-19T01:00"), dt=1 * u.min
     )
     assert isinstance(padre_orbit.in_saa, np.ndarray)
-    assert isinstance(padre_orbit.in_saa[0], np.bool)
+    assert isinstance(padre_orbit.in_saa[0], np.bool_)
     assert len(padre_orbit.in_saa) == 60
     assert len(padre_orbit.in_upper_belt) == 60
     assert len(padre_orbit.in_lower_belt) == 60
@@ -62,7 +62,7 @@ def test_orbit_calculate2(padre_orbit):
         tstart=Time("2025-12-19T00:00"), tend=Time("2025-12-19T00:01"), dt=1 * u.s
     )
     assert isinstance(padre_orbit.in_saa, np.ndarray)
-    assert isinstance(padre_orbit.in_saa[0], np.bool)
+    assert isinstance(padre_orbit.in_saa[0], np.bool_)
     assert len(padre_orbit.in_saa) == 60
     assert len(padre_orbit.in_upper_belt) == 60
     assert len(padre_orbit.in_lower_belt) == 60
@@ -77,7 +77,7 @@ def test_orbit_calculate3(padre_orbit):
         tstart=Time("2025-12-19T00:00"), tend=Time("2025-12-20T00:00"), dt=1 * u.hr
     )
     assert isinstance(padre_orbit.in_saa, np.ndarray)
-    assert isinstance(padre_orbit.in_saa[0], np.bool)
+    assert isinstance(padre_orbit.in_saa[0], np.bool_)
     assert len(padre_orbit.in_saa) == 24
     assert len(padre_orbit.in_upper_belt) == 24
     assert len(padre_orbit.in_lower_belt) == 24
