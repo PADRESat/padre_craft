@@ -5,12 +5,10 @@ from pathlib import Path
 
 import astropy.units as u
 import numpy as np
-from astropy.table import QTable, Table, vstack
-from astropy.time import Time, TimeDelta
+from astropy.table import QTable, Table
+from astropy.time import Time
 from astropy.timeseries import TimeSeries
-from swxsoc.util import parse_science_filename
 
-from padre_craft.orbit import PadreOrbit
 
 
 class DirList:

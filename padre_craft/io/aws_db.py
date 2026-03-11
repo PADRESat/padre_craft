@@ -1,6 +1,5 @@
 """Provides functions to upload data to the time series database for display"""
 
-from astropy.table import QTable
 from astropy.timeseries import TimeSeries
 from padre_meddea.housekeeping.calibration import calibrate_hk_ts
 from swxsoc.util.util import record_timeseries
