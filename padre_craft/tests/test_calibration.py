@@ -29,7 +29,7 @@ def test_process_file(this_path, tmpdir, monkeypatch):
 @patch("padre_craft.calibration.calibration.aws_db.record_dirlist")
 def test_process_dirlist_file(mock_record_dirlist):
     """Test processing of dirlist files."""
-    dirlist_file = "padre_craft_dirlist_022426.txt"
+    dirlist_file = "padre_craft_dirlist_1772908542.txt"
     test_dirlist_file = _test_files_directory / dirlist_file
 
     # Process the dirlist file
