@@ -131,6 +131,8 @@ def test_record_dirlist(mocked_timestream):
     record = records[0]
     assert record["MeasureName"] == "dirlist_file_size"
 
+    assert records[1]["MeasureName"] == "dirlist_file_count"
+
     # Check that measure values contain expected columns
     measure_values = record["MeasureValues"]
     measure_names = [mv["Name"] for mv in measure_values]
@@ -154,10 +156,10 @@ def test_record_dirlist(mocked_timestream):
         (mv for mv in measure_values if mv["Name"] == "total"), None
     )
     assert file_count_total is not None
-    #assert file_count_total["Value"] == str(dirlist_summary["file_count_total"][0])
+    # assert file_count_total["Value"] == str(dirlist_summary["file_count_total"][0])
 
     file_count_meddea = next(
         (mv for mv in measure_values if mv["Name"] == "total"), None
     )
     assert file_count_meddea is not None
-    #assert file_count_meddea["Value"] == str(dirlist_summary["file_count_meddea"][0])
+    # assert file_count_meddea["Value"] == str(dirlist_summary["file_count_meddea"][0])

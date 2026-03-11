@@ -53,12 +53,12 @@ def record_orbit(padre_orbit_ts: TimeSeries) -> None:
 
 def record_dirlist(this_dirlist: DirList) -> None:
     # record the file sizes
-    summary_ts = this_dirlist.to_summary_ts(type="size")
+    summary_ts = this_dirlist.to_summary_ts(metric_type="size")
     record_timeseries(
         ts=summary_ts, ts_name="dirlist_file_size", instrument_name="craft"
     )
     # record the file counts
-    summary_ts = this_dirlist.to_summary_ts(type="count")
+    summary_ts = this_dirlist.to_summary_ts(metric_type="count")
     record_timeseries(
         ts=summary_ts, ts_name="dirlist_file_count", instrument_name="craft"
     )

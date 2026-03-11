@@ -112,7 +112,7 @@ def test_dirlist_count_count_rows(dir_list, expected_row):
 def test_dirlist_file_count(dir_list, name, count):
     file_count_dict = dir_list._file_count_dict()
     #  file_count_table = dir_list.file_count()
-    ts_count = dir_list.to_summary_ts(type="count")
+    ts_count = dir_list.to_summary_ts(metric_type="count")
     assert file_count_dict[name] == count
     assert ts_count[name] == count
 
@@ -131,11 +131,16 @@ def test_dirlist_file_count(dir_list, name, count):
 def test_dirlist_file_size(dir_list, name, size):
     file_size_dict = dir_list._file_size_dict()
     #  file_size_table = dir_list.file_size()
-    ts_size = dir_list.to_summary_ts(type="size")
+    ts_size = dir_list.to_summary_ts(metric_type="size")
     assert file_size_dict[name] >= size * u.MB
     assert ts_size[name] >= size
 
 
 def test_dirlist_to_summary_ts(dir_list):
-    ts = dir_list.to_summary_ts(type="size")
+    ts = dir_list.to_summary_ts(metric_type="size")
     assert isinstance(ts, TimeSeries)
+
+
+def test_dirlist_to_summary_ts_invalid_metric(dir_list):
+    with pytest.raises(ValueError, match="Invalid metric_type 'invalid'. Expected 'size' or 'count'."):
+        dir_list.to_summary_ts(metric_type="invalid")

@@ -10,7 +10,6 @@ from astropy.time import Time
 from astropy.timeseries import TimeSeries
 
 
-
 class DirList:
     """
     Class to manage the directory or file list provided by the spacecraft.
@@ -27,7 +26,7 @@ class DirList:
     >>> dir_list = DirList(_test_files_directory / "padre_craft_dirlist_1772908542.txt")
     >>> print(len(dir_list))
     107
-    >>> print()dir_list.file_count())
+    >>> print(dir_list.file_count())
                 name          count
     ----------------------- -----
                     total   107
@@ -173,17 +172,19 @@ class DirList:
         result += f"{self.file_list}\n"
         return result
 
-    def to_summary_ts(self, type="size") -> TimeSeries:
+    def to_summary_ts(self, metric_type="size") -> TimeSeries:
         summary_ts = TimeSeries(time=[Time(self.file_list.meta["time"])])
-        if type == "size":
+        if metric_type == "size":
             data_dict = self._file_size_dict()
-        elif type == "count":
+        elif metric_type == "count":
             data_dict = self._file_count_dict()
-
+        else:
+            raise ValueError(
+                f"Invalid metric_type '{metric_type}'. Expected 'size' or 'count'."
+            )
         for key, val in data_dict.items():
             if isinstance(val, u.Quantity):
                 summary_ts[key] = val.value
             else:
                 summary_ts[key] = val
         return summary_ts
-
