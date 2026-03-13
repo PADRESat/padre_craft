@@ -191,7 +191,7 @@ class DirList:
                 for this_f in self.file_list["file_name"]
             ]
         )
-        self.file_list["instrument"][only_sharp_mask * only_idx_dat_mask] = "sharp"
+        self.file_list["instrument"][only_sharp_mask & only_idx_dat_mask] = "sharp"
         for i, this_instrument in enumerate(self.file_list["instrument"]):
             filename = self.file_list["file_name"][i]
             if this_instrument == "sharp":
