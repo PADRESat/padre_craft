@@ -25,17 +25,27 @@ class DirList:
     >>> from padre_craft import _test_files_directory
     >>> dir_list = DirList(_test_files_directory / "padre_craft_dirlist_1772908542.txt")
     >>> print(len(dir_list))
-    107
+    121
     >>> print(dir_list.file_count())
-                name          count
+            name          count
+            str23          int64
     ----------------------- -----
-                    total   107
+                    total   121
     padre_craft_padre_craft    27
             meddea_photon    32
                 meddea_hk     4
             meddea_spectrum    33
-                sharp_162    10
-                sharp_160     1
+                sharp_det0     1
+                sharp_det1     1
+                        ...   ...
+                sharp_det5     1
+                sharp_det6     9
+                sharp_det7     1
+            sharp_det_hk     2
+            sharp_response     2
+            sharp_histogram     1
+        sharp_shipboot_hk     2
+            sharp_ship_hk     1
     """
 
     def __init__(self, file_path: str | Path):
@@ -82,13 +92,64 @@ class DirList:
         self.file_list = file_list
         self.file_list["instrument"] = len(self.file_list) * ["padre_craft"]
         self.file_list["data_type"] = len(self.file_list) * ["padre_craft"]
+        self.file_list["file_time"] = Time(
+            ["2020-01-01T12:00:00Z"] * len(self.file_list), format="isot", scale="utc"
+        )
         self._all_instr_data_types = {
-            "padre_craft": ["padre_craft"],
-            "meddea": ["photon", "hk", "spectrum"],
-            "sharp": ["162", "160"],
+            "padre_craft": {"padre_craft": "padre_craft"},
+            "meddea": {"MDA0": "photon", "MDU8": "hk", "MDA2": "spectrum"},
+            "sharp": {
+                "SP10": "det0",
+                "SP11": "det1",
+                "SP12": "det2",
+                "SP13": "det3",
+                "SP14": "det4",
+                "SP15": "det5",
+                "SP16": "det6",
+                "SP17": "det7",
+                "SP20": "det_hk",
+                "SP30": "response",
+                "SP122": "histogram",
+                "SP160": "shipboot_hk",
+                "SP162": "ship_hk",
+            },
         }
         self._label_meddea_files()
         self._label_sharp_files()
+
+    @classmethod
+    def _parse_sharp_filename(cls, filename):
+        if len(filename) == 21:
+            m = re.match(
+                r"^SP(\d{3}?)(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})\.(idx|dat)$",
+                filename,
+            )
+        elif len(filename) == 20:
+            m = re.match(
+                r"^SP(\d{2}?)(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})\.(idx|dat)$",
+                filename,
+            )
+        else:
+            raise ValueError(f"Could not parse SHARP filename: {filename}")
+        if m is not None:
+            time_str = f"20{m[2]}-{m[3]}-{m[4]}T{m[5]}:{m[6]}:{m[7]}Z"
+            APID = m[1]
+            return APID, Time(time_str)
+        else:
+            raise ValueError(f"Could not parse SHARP filename: {filename}")
+
+    @classmethod
+    def _parse_meddea_filename(cls, filename):
+        m = re.match(
+            r"^MD(U8|A0|A2)(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})\.(dat)$",
+            filename,
+        )
+        if m is not None:
+            APID = filename[2:4]
+            time_str = f"20{m[2]}-{m[3]}-{m[4]}T{m[5]}:{m[6]}:{m[7]}Z"
+            return APID, Time(time_str)
+        else:
+            raise ValueError(f"Could not parse MeDDEA filename: {filename}")
 
     def __len__(self):
         return len(self.file_list)
@@ -96,32 +157,48 @@ class DirList:
     def _label_meddea_files(self):
         """Recognize and label all MeDDEA files based on the filename"""
         only_meddea_mask = np.array(
-            ["MD" in Path(this_f).name for this_f in self.file_list["file_name"]]
+            [
+                Path(this_f).name.startswith("MD")
+                for this_f in self.file_list["file_name"]
+            ]
         )
-        self.file_list["instrument"][only_meddea_mask] = "meddea"
+        only_idx_dat_mask = np.array(
+            [
+                Path(this_f).suffix in [".idx", ".dat"]
+                for this_f in self.file_list["file_name"]
+            ]
+        )
+        self.file_list["instrument"][only_meddea_mask * only_idx_dat_mask] = "meddea"
         for i, this_instrument in enumerate(self.file_list["instrument"]):
+            filename = self.file_list["file_name"][i]
             if this_instrument == "meddea":
-                if "U8" in self.file_list["file_name"][i]:
-                    self.file_list["data_type"][i] = "hk"
-                elif "A0" in self.file_list["file_name"][i]:
-                    self.file_list["data_type"][i] = "photon"
-                elif "A2" in self.file_list["file_name"][i]:
-                    self.file_list["data_type"][i] = "spectrum"
+                this_apid, this_file_time = self._parse_meddea_filename(filename)
+                self.file_list["file_time"][i] = this_file_time
+                this_data_type = self._all_instr_data_types["meddea"][f"MD{this_apid}"]
+                self.file_list["data_type"][i] = this_data_type
 
     def _label_sharp_files(self):
         """Recognize and label all SHARP files by filing in instrument and data type columns based on the filename"""
         only_sharp_mask = np.array(
-            ["SP16" in Path(this_f).name for this_f in self.file_list["file_name"]]
+            [
+                Path(this_f).name.startswith("SP")
+                for this_f in self.file_list["file_name"]
+            ]
         )
-        self.file_list["instrument"][only_sharp_mask] = "sharp"
+        only_idx_dat_mask = np.array(
+            [
+                Path(this_f).suffix in [".idx", ".dat"]
+                for this_f in self.file_list["file_name"]
+            ]
+        )
+        self.file_list["instrument"][only_sharp_mask * only_idx_dat_mask] = "sharp"
         for i, this_instrument in enumerate(self.file_list["instrument"]):
+            filename = self.file_list["file_name"][i]
             if this_instrument == "sharp":
-                if (
-                    "162" == self.file_list["file_name"][i][2:5]
-                ):  # Check the data type in the filename
-                    self.file_list["data_type"][i] = "162"
-                elif "160" == self.file_list["file_name"][i][2:5]:
-                    self.file_list["data_type"][i] = "160"
+                this_apid, this_file_time = self._parse_sharp_filename(filename)
+                self.file_list["file_time"][i] = this_file_time
+                this_data_type = self._all_instr_data_types["sharp"][f"SP{this_apid}"]
+                self.file_list["data_type"][i] = this_data_type
 
     def available_instruments(self):
         return np.unique(self.file_list["instrument"])
@@ -133,7 +210,7 @@ class DirList:
         result = {}
         result.update({"total": np.sum(self.file_list["size"])})
         for this_instrument, these_data_types in self._all_instr_data_types.items():
-            for this_data_type in these_data_types:
+            for this_data_type in these_data_types.values():
                 these_files = self.file_list[
                     (self.file_list["instrument"] == this_instrument)
                     & (self.file_list["data_type"] == this_data_type)
@@ -146,7 +223,7 @@ class DirList:
         result = {}
         result.update({"total": len(self.file_list["size"])})
         for this_instrument, these_data_types in self._all_instr_data_types.items():
-            for this_data_type in these_data_types:
+            for this_data_type in these_data_types.values():
                 these_files = self.file_list[
                     (self.file_list["instrument"] == this_instrument)
                     & (self.file_list["data_type"] == this_data_type)
@@ -188,3 +265,19 @@ class DirList:
             else:
                 summary_ts[key] = val
         return summary_ts
+
+    def only_sharp(self):
+        """Return a new DirList object containing only SHARP files"""
+        sharp_file_list = self.file_list[self.file_list["instrument"] == "sharp"]
+        sharp_dirlist = DirList.__new__(DirList)
+        sharp_dirlist.file_list = sharp_file_list
+        sharp_dirlist._all_instr_data_types = self._all_instr_data_types
+        return sharp_dirlist
+
+    def only_meddea(self):
+        """Return a new DirList object containing only MeDDEA files"""
+        meddea_file_list = self.file_list[self.file_list["instrument"] == "meddea"]
+        meddea_dirlist = DirList.__new__(DirList)
+        meddea_dirlist.file_list = meddea_file_list
+        meddea_dirlist._all_instr_data_types = self._all_instr_data_types
+        return meddea_dirlist
