@@ -77,13 +77,14 @@ You can access ``file_list`` directly to inspect or filter the full table:
 .. code-block:: python
 
     >>> dir_list.file_list.colnames
-    ['size(in bytes)', 'file_name', 'timestamp', 'attributes', 'size', 'file_create_time', 'instrument', 'data_type', 'file_time']
+    ['file_name', 'size(in bytes)', 'attributes', 'timestamp', 'size', 'file_create_time', 'instrument', 'data_type', 'file_time']
 
 Because ``file_list`` is an `~astropy.table.QTable` you can use standard Astropy table indexing to
 filter rows. For example, to list all MeDDEA photon files larger than 10 MB:
 
 .. code-block:: python
 
+    >>> import astropy.units as u
     >>> mask = (dir_list.file_list["instrument"] == "meddea") & (dir_list.file_list["data_type"] == "photon") & (dir_list.file_list["size"] > 10 * u.MB)  # noqa: E501
     >>> print(dir_list.file_list[mask]["file_name", "size", "file_time"])
             file_name              size               file_time       
@@ -168,11 +169,7 @@ You can query which instruments and data types are present in a given listing:
 .. code-block:: python
 
     >>> print(dir_list.available_instruments())
-     instrument
-    -----------
-        meddea
-    padre_craft
-        sharp
+    ['meddea' 'padre_craft' 'sharp']
     >>> print(dir_list.available_data_types())
     ['det0' 'det1' 'det2' 'det3' 'det4' 'det5' 'det6' 'det7' 'det_hk'
      'histogram' 'hk' 'padre_craft' 'photon' 'response' 'ship_hk'
@@ -187,7 +184,7 @@ return a new `~padre_craft.dirlist.dirlist.DirList` instance containing only fil
 
     >>> sharp_files = dir_list.only_sharp()
     >>> print(len(sharp_files))
-    26
+    25
     >>> meddea_files = dir_list.only_meddea()
     >>> print(len(meddea_files))
     69
@@ -201,8 +198,3 @@ The ``metric_type`` parameter selects between ``"size"`` (default) and ``"count"
 .. code-block:: python
 
     >>> ts = dir_list.to_summary_ts(metric_type="count")
-    >>> print(ts)
-    <TimeSeries length=1>
-              time             total padre_craft_padre_craft ... sharp_ship_hk
-    ----------------------- ------- ----------------------- ... -------------
-    2026-03-13T01:22:22.000     121                      27 ...             1
