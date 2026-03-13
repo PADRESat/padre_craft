@@ -178,7 +178,7 @@ class DirList:
                 self.file_list["data_type"][i] = this_data_type
 
     def _label_sharp_files(self):
-        """Recognize and label all SHARP files by filing in instrument and data type columns based on the filename"""
+        """Recognize and label all SHARP files by filling in instrument and data type columns based on the filename"""
         only_sharp_mask = np.array(
             [
                 Path(this_f).name.startswith("SP")
