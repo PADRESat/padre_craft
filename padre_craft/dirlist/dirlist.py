@@ -2,6 +2,7 @@
 
 import re
 from pathlib import Path
+from typing import Self
 
 import astropy.units as u
 import numpy as np
@@ -119,6 +120,17 @@ class DirList:
 
     @classmethod
     def _parse_sharp_filename(cls, filename):
+        """Parse SHARP filename to extract APID and file creation time.
+        SHARP filenames can have two formats: SPXXXYYMMDDhhmmss.dat or SPXXYYMMDDhhmmss.dat,
+        where XXX or XX is the APID, YY is the year, MM is the month, DD is the day, hh is the hour, mm is the minute, and ss is the second.
+
+        Returns
+        -------
+           APID: str
+             The APID extracted from the filename.
+           file_time: Time
+             The file creation time extracted from the filename.
+        """
         if len(filename) == 21:
             m = re.match(
                 r"^SP(\d{3}?)(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})\.(idx|dat)$",
@@ -140,6 +152,17 @@ class DirList:
 
     @classmethod
     def _parse_meddea_filename(cls, filename):
+        """Parse MeDDEA filename to extract APID and file creation time.
+        MeDDEA filenames have the format MD(U8|A0|A2)YYMMDDhhmmss.dat, where U8, A0, or A2 indicates the type of data,
+        YY is the year, MM is the month, DD is the day, hh is the hour, mm is the minute, and ss is the second.
+
+        Returns
+        -------
+           APID: str
+             The APID extracted from the filename.
+           file_time: Time
+             The file creation time extracted from the filename.
+        """
         m = re.match(
             r"^MD(U8|A0|A2)(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})\.(dat)$",
             filename,
@@ -151,11 +174,11 @@ class DirList:
         else:
             raise ValueError(f"Could not parse MeDDEA filename: {filename}")
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.file_list)
 
-    def _label_meddea_files(self):
-        """Recognize and label all MeDDEA files based on the filename"""
+    def _label_meddea_files(self) -> None:
+        """Recognize and label all MeDDEA files by updating instrument, data_type, and file_time column."""
         only_meddea_mask = np.array(
             [
                 Path(this_f).name.startswith("MD")
@@ -177,8 +200,8 @@ class DirList:
                 this_data_type = self._all_instr_data_types["meddea"][f"MD{this_apid}"]
                 self.file_list["data_type"][i] = this_data_type
 
-    def _label_sharp_files(self):
-        """Recognize and label all SHARP files by filling in instrument and data type columns based on the filename"""
+    def _label_sharp_files(self) -> None:
+        """Recognize and label all SHARP files by updating instrument, data_type, and file_time column."""
         only_sharp_mask = np.array(
             [
                 Path(this_f).name.startswith("SP")
@@ -200,13 +223,16 @@ class DirList:
                 this_data_type = self._all_instr_data_types["sharp"][f"SP{this_apid}"]
                 self.file_list["data_type"][i] = this_data_type
 
-    def available_instruments(self):
-        return np.unique(self.file_list["instrument"])
+    def available_instruments(self) -> np.array:
+        """Returns a list of unique instruments present in the dirlist."""
+        return np.unique(list(self.file_list["instrument"]))
 
-    def available_data_types(self):
-        return np.unique(self.file_list["data_type"])
+    def available_data_types(self) -> np.array:
+        """Returns a list of unique data types present in the dirlist."""
+        return np.unique(list(self.file_list["data_type"]))
 
-    def _file_size_dict(self):
+    def _file_size_dict(self) -> dict:
+        """Calculate total file size for each instrument and data type combination, as well as the overall total file size."""
         result = {}
         result.update({"total": np.sum(self.file_list["size"])})
         for this_instrument, these_data_types in self._all_instr_data_types.items():
@@ -219,7 +245,8 @@ class DirList:
                 result.update({f"{this_instrument}_{this_data_type}": total_size})
         return result
 
-    def _file_count_dict(self):
+    def _file_count_dict(self) -> dict:
+        """Calculate total file count for each instrument and data type combination, as well as the overall total file count."""
         result = {}
         result.update({"total": len(self.file_list["size"])})
         for this_instrument, these_data_types in self._all_instr_data_types.items():
@@ -232,16 +259,18 @@ class DirList:
         return result
 
     def file_size(self) -> QTable:
+        """Return a QTable containing total file size for each instrument and data type combination, as well as the overall total file size."""
         file_size = self._file_size_dict()
         data = {"name": list(file_size.keys()), "size": list(file_size.values())}
         return QTable(data=data)
 
     def file_count(self) -> QTable:
+        """Return a QTable containing total file count for each instrument and data type combination, as well as the overall total file count."""
         file_size = self._file_count_dict()
         data = {"name": list(file_size.keys()), "count": list(file_size.values())}
         return QTable(data=data)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         result = f"FileList {Path(self.file_list.meta['filename']).name} created on {self.file_list.meta['time']}.\n"
         result += f"Total size: {self._file_size_dict()['total']:.2f}\n"
         result += f"{self.file_size()}:\n"
@@ -250,6 +279,7 @@ class DirList:
         return result
 
     def to_summary_ts(self, metric_type="size") -> TimeSeries:
+        """Convert the dirlist summary (file size or file count) to an astropy TimeSeries object to upload to timestream database"""
         summary_ts = TimeSeries(time=[Time(self.file_list.meta["time"])])
         if metric_type == "size":
             data_dict = self._file_size_dict()
@@ -266,7 +296,7 @@ class DirList:
                 summary_ts[key] = val
         return summary_ts
 
-    def only_sharp(self):
+    def only_sharp(self) -> Self:
         """Return a new DirList object containing only SHARP files"""
         sharp_file_list = self.file_list[self.file_list["instrument"] == "sharp"]
         sharp_dirlist = DirList.__new__(DirList)
@@ -274,7 +304,7 @@ class DirList:
         sharp_dirlist._all_instr_data_types = self._all_instr_data_types
         return sharp_dirlist
 
-    def only_meddea(self):
+    def only_meddea(self) -> Self:
         """Return a new DirList object containing only MeDDEA files"""
         meddea_file_list = self.file_list[self.file_list["instrument"] == "meddea"]
         meddea_dirlist = DirList.__new__(DirList)
