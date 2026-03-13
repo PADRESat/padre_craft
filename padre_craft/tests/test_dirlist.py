@@ -251,3 +251,15 @@ def test_dirlist_to_summary_ts_invalid_metric(dir_list):
         ValueError, match="Invalid metric_type 'invalid'. Expected 'size' or 'count'."
     ):
         dir_list.to_summary_ts(metric_type="invalid")
+
+
+def test_dirlist_to_meddea(dir_list):
+    dir_list = dir_list.only_meddea()
+    assert isinstance(dir_list, dirlist.DirList)
+    assert len(dir_list) == 69
+
+
+def test_dirlist_to_sharp(dir_list):
+    dir_list = dir_list.only_sharp()
+    assert isinstance(dir_list, dirlist.DirList)
+    assert len(dir_list) == 25
