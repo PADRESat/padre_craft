@@ -144,8 +144,8 @@ def test_record_dirlist(mocked_timestream):
         "meddea_photon",
         "meddea_hk",
         "meddea_spectrum",
-        "sharp_162",
-        "sharp_160",
+        "sharp_det_hk",
+        "sharp_det7",
     ]
 
     for col in expected_columns:
