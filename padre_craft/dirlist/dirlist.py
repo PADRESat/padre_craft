@@ -27,25 +27,18 @@ class DirList:
     >>> print(len(dir_list))
     121
     >>> print(dir_list.file_count())
-            name          count
-            str23          int64
+              name          count
     ----------------------- -----
-                    total   121
+                      total   121
     padre_craft_padre_craft    27
-            meddea_photon    32
-                meddea_hk     4
-            meddea_spectrum    33
-                sharp_det0     1
-                sharp_det1     1
+              meddea_photon    32
+                  meddea_hk     4
                         ...   ...
-                sharp_det5     1
-                sharp_det6     9
-                sharp_det7     1
-            sharp_det_hk     2
-            sharp_response     2
+             sharp_response     2
             sharp_histogram     1
-        sharp_shipboot_hk     2
-            sharp_ship_hk     1
+          sharp_shipboot_hk     2
+              sharp_ship_hk     1
+    Length = 18 rows
     """
 
     def __init__(self, file_path: str | Path):
