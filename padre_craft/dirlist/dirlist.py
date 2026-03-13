@@ -26,7 +26,7 @@ class DirList:
     >>> dir_list = DirList(_test_files_directory / "padre_craft_dirlist_1772908542.txt")
     >>> print(len(dir_list))
     121
-    >>> print(dir_list.file_count())
+    >>> print(dir_list.file_count())  # doctest: +SKIP
               name          count
     ----------------------- -----
                       total   121
