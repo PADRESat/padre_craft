@@ -2,7 +2,6 @@
 
 import re
 from pathlib import Path
-from typing import Self
 
 import astropy.units as u
 import numpy as np
@@ -296,7 +295,7 @@ class DirList:
                 summary_ts[key] = val
         return summary_ts
 
-    def only_sharp(self) -> Self:
+    def only_sharp(self):
         """Return a new DirList object containing only SHARP files"""
         sharp_file_list = self.file_list[self.file_list["instrument"] == "sharp"]
         sharp_dirlist = DirList.__new__(DirList)
@@ -304,7 +303,7 @@ class DirList:
         sharp_dirlist._all_instr_data_types = self._all_instr_data_types
         return sharp_dirlist
 
-    def only_meddea(self) -> Self:
+    def only_meddea(self):
         """Return a new DirList object containing only MeDDEA files"""
         meddea_file_list = self.file_list[self.file_list["instrument"] == "meddea"]
         meddea_dirlist = DirList.__new__(DirList)
