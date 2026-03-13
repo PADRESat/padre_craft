@@ -93,9 +93,9 @@ class DirList:
         self.file_list = file_list
         self.file_list["instrument"] = len(self.file_list) * ["padre_craft"]
         self.file_list["data_type"] = len(self.file_list) * ["padre_craft"]
-        self.file_list["file_time"] = Time(
-            ["2020-01-01T12:00:00Z"] * len(self.file_list), format="isot", scale="utc"
-        )
+        self.file_list["file_time"] = [
+            Time("2020-01-01T12:00:00.000Z", format="isot").isot
+        ] * len(self.file_list)
         self._all_instr_data_types = {
             "padre_craft": {"padre_craft": "padre_craft"},
             "meddea": {"MDA0": "photon", "MDU8": "hk", "MDA2": "spectrum"},
@@ -146,7 +146,7 @@ class DirList:
         if m is not None:
             time_str = f"20{m[2]}-{m[3]}-{m[4]}T{m[5]}:{m[6]}:{m[7]}Z"
             APID = m[1]
-            return APID, Time(time_str)
+            return APID, Time(time_str).isot
         else:
             raise ValueError(f"Could not parse SHARP filename: {filename}")
 
@@ -170,7 +170,7 @@ class DirList:
         if m is not None:
             APID = filename[2:4]
             time_str = f"20{m[2]}-{m[3]}-{m[4]}T{m[5]}:{m[6]}:{m[7]}Z"
-            return APID, Time(time_str)
+            return APID, Time(time_str).isot
         else:
             raise ValueError(f"Could not parse MeDDEA filename: {filename}")
 

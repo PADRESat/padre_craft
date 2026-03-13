@@ -1,1 +1,1 @@
-from .dirlist import DirList
+from .dirlist import DirList as DirList
