@@ -124,7 +124,7 @@ def test_record_dirlist(mocked_timestream):
     backend = timestreamwrite_backends[ACCOUNT_ID]["us-east-1"]
     records = backend.databases[database_name].tables[table_name].records
 
-    # Assert that there should be 1 record (one row in summary table)
+    # Assert that there should be 2 records (file size and file count summaries)
     assert len(records) == 2
 
     # Check the record details
