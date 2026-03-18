@@ -70,6 +70,8 @@ class DirList:
             time_unix_seconds = int(match_short.group(1))
             file_create_time = Time(time_unix_seconds, format="unix", scale="utc")
             file_list.meta["time"] = file_create_time.isot
+            file_create_time.format = "isot"
+            self.time = file_create_time
         else:
             raise ValueError(
                 f"Could not parse date from filename: {file_path}. "
@@ -286,6 +288,9 @@ class DirList:
                 summary_ts[key] = val.value
             else:
                 summary_ts[key] = val
+        time = summary_ts.time[0]
+        dir_str = time.strftime("%Y/%m/%d")
+        summary_ts["url_suffix"] = f"{dir_str}/{self.file_list.meta['filename']}"
         return summary_ts
 
     def only_sharp(self):
