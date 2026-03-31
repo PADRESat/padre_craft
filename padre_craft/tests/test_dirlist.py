@@ -8,7 +8,7 @@ from padre_craft import _test_files_directory
 from padre_craft.dirlist import dirlist
 
 test_file = _test_files_directory / "padre_craft_dirlist_1772908542.txt"
-
+bin_test_file = _test_files_directory / "padre_craft_dirlist_1774795542.bin"
 
 _all_instr_data_types = {
     "padre_craft": {"padre_craft": "padre_craft"},
@@ -263,3 +263,11 @@ def test_dirlist_to_sharp(dir_list):
     dir_list = dir_list.only_sharp()
     assert isinstance(dir_list, dirlist.DirList)
     assert len(dir_list) == 25
+
+
+def test_dirlist_bin_file():
+    with pytest.raises(
+        ValueError,
+        match=f"Could not read file {bin_test_file.name}. Please make sure it is a valid ASCII file and not a binary file.",
+    ):
+        dirlist.DirList(bin_test_file)
