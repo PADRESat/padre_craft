@@ -271,3 +271,22 @@ def test_dirlist_bin_file():
         match=f"Could not read file {bin_test_file.name}. Please make sure it is a valid ASCII file and not a binary file.",
     ):
         dirlist.DirList(bin_test_file)
+
+
+def test_dirlist_to_csv(dir_list, tmp_path):
+    output_file = tmp_path / "test_dirlist.csv"
+    dir_list.to_csv(output_file)
+    assert output_file.exists()
+    result = dirlist.Table.read(output_file, format="ascii.csv", comment="#")
+    assert len(result) == len(dir_list)
+    assert set(dir_list.file_list.colnames) == set(result.colnames)
+    content = output_file.read_text()
+    assert dir_list.filename in content
+    assert str(dir_list.time) in content
+
+
+def test_only_instruments(dir_list):
+    instr_dirlist = dir_list.only_instruments()
+    assert isinstance(instr_dirlist, dirlist.DirList)
+    assert np.isin(instr_dirlist.available_instruments(), ["meddea", "sharp"]).all()
+    assert len(instr_dirlist) == 94
