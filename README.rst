@@ -24,7 +24,7 @@ Overview
     :target: https://github.com/PADRESat/padre_craft/actions/workflows/codestyle.yml
     :alt: Codestyle and linting
 
-.. |coverage| .. image:: https://codecov.io/gh/PADRESat/padre_craft/graph/badge.svg?token=XTT6NVS4HW 
+.. |coverage| image:: https://codecov.io/gh/PADRESat/padre_craft/graph/badge.svg?token=XTT6NVS4HW 
     :target: https://codecov.io/gh/PADRESat/padre_craft
     :alt: code coverage
 
@@ -32,6 +32,8 @@ Overview
 
 A Python package to process and analyze data from PADRE spacecraft subsystems part of the
 NASA solar PolArization and Directivity X-Ray Experiment (PADRE) small satellite mission.
+
+Our documentation can be found at https://padre-craft.readthedocs.io/en/latest/
 
 PADRE launched on July 23rd, 2025.
 

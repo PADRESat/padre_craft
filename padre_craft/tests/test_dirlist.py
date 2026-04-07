@@ -31,6 +31,27 @@ _all_instr_data_types = {
 }
 
 
+_all_instr_data_types = {
+    "padre_craft": {"padre_craft": "padre_craft"},
+    "meddea": {"MDA0": "photon", "MDU8": "hk", "MDA2": "spectrum"},
+    "sharp": {
+        "SP10": "det0",
+        "SP11": "det1",
+        "SP12": "det2",
+        "SP13": "det3",
+        "SP14": "det4",
+        "SP15": "det5",
+        "SP16": "det6",
+        "SP17": "det7",
+        "SP20": "det_hk",
+        "SP30": "response",
+        "SP122": "histogram",
+        "SP160": "shipboot_hk",
+        "SP162": "ship_hk",
+    },
+}
+
+
 @pytest.fixture
 def dir_list():
     return dirlist.DirList(test_file)
