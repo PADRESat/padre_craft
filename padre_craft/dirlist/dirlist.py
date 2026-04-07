@@ -69,6 +69,7 @@ class DirList:
         file_create_times.format = "isot"
         file_list["file_create_time"] = file_create_times
         file_list.meta["filename"] = str(file_path)
+        self.filename = file_path.name
 
         match_short = re.search(r"(\d{10})", str(file_path.name))
         if match_short:
@@ -313,3 +314,21 @@ class DirList:
         meddea_dirlist.file_list = meddea_file_list
         meddea_dirlist._all_instr_data_types = self._all_instr_data_types
         return meddea_dirlist
+
+    def only_instruments(self):
+        """Return a new DirList object containing only files from sharp and meddea"""
+        bool_array = np.isin(self.file_list["instrument"], ["sharp", "meddea"])
+        this_file_list = self.file_list[bool_array]
+        instr_dirlist = DirList.__new__(DirList)
+        instr_dirlist.file_list = this_file_list
+        instr_dirlist._all_instr_data_types = self._all_instr_data_types
+        return instr_dirlist
+
+    def to_csv(self, output_path: str | Path) -> None:
+        """Save the file_list to a CSV file."""
+        if not isinstance(output_path, Path):
+            output_path = Path(output_path)
+        self.file_list.meta["comments"] = [self.filename, str(self.time)]
+        self.file_list.write(
+            output_path, format="ascii.csv", overwrite=True, comment="#"
+        )
