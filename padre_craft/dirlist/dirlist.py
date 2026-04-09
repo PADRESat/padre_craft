@@ -44,18 +44,26 @@ class DirList:
     def __init__(self, file_path: str | Path):
         if not isinstance(file_path, Path):
             file_path = Path(file_path)
-        file_list = QTable(
-            Table.read(
-                file_path,
-                format="ascii.csv",
-                converters={
-                    "size(in bytes)": int,
-                    "file_name": str,
-                    "timestamp": int,
-                    "attributes": str,
-                },
-            )
-        )
+        if file_path.exists() and file_path.is_file():
+            try:
+                file_list = QTable(
+                    Table.read(
+                        file_path,
+                        format="ascii.csv",
+                        converters={
+                            "size(in bytes)": int,
+                            "file_name": str,
+                            "timestamp": int,
+                            "attributes": str,
+                        },
+                    )
+                )
+            except UnicodeDecodeError:
+                raise ValueError(
+                    f"Could not read file {file_path}. Ensure it is a valid ASCII file and not a binary file."
+                )
+        else:
+            raise FileNotFoundError(f"File not found: {file_path}")
         file_list["size"] = (file_list["size(in bytes)"] * u.byte).to(u.MB)
         # filter out files with size = 0 bytes
         bool_array = file_list["size"] > 0 * u.MB
