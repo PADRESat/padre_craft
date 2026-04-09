@@ -242,6 +242,43 @@ class MeDDEAFileList:
         else:
             return np.sum(self.file_list["size(in bytes)"])
 
+    def add_orbit_info(self):
+        """
+        Add orbit information to a list of MeDDEA files based on their timestamps.
+        This function uses the PadreOrbit class to determine the orbit number for each file based on its timestamp.
+
+        Parameters
+        ---
+        file_list: QTable
+            Table containing at least a "time" column with astropy Time objects, and a "file_name" column with the corresponding filenames.
+
+        Returns
+        ---
+        file_list: QTable
+            Updated table with percent of good sun observations and good calibration observations added as "good_sun_obs" and "good_cal_obs" columns, respectively.
+        """
+        # evaluate photons files for calibration files
+        new_file_list = self.file_list.copy()
+        padre_orbit = PadreOrbit()
+        good_sun_obs_list = [0.0] * len(self.file_list)
+        good_cal_obs_list = [0.0] * len(self.file_list)
+        for i, this_row in enumerate(self.file_list):
+            if this_row["time"] >= (Time.now() - TimeDelta(10 * u.day)):
+                padre_orbit.calculate(
+                    tstart=this_row["time"], tend=this_row["end_time"]
+                )
+                ts = padre_orbit.timeseries
+                in_particles = ts["in_saa"] | ts["in_upper_belt"] | ts["in_lower_belt"]
+                good_sun_obs = ts["in_sun"] * (~in_particles)
+                good_cal_obs = ~ts["in_sun"] * (~in_particles)
+                good_sun_obs_list[i] = np.sum(good_sun_obs) / len(ts)
+                good_cal_obs_list[i] = np.sum(good_cal_obs) / len(ts)
+
+                # calculate the percent of good data in the photon file based on the percentage of time spent in eclipse vs. in sunlight, since we only want to keep photon files that are mostly in sunlight for calibration purposes
+        new_file_list["good_sun_obs"] = good_sun_obs_list * u.percent * 100
+        new_file_list["good_cal_obs"] = good_cal_obs_list * u.percent * 100
+        self.file_list = new_file_list
+
     @classmethod
     def parse_file_name(cls, filename):
         """
