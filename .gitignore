@@ -196,3 +196,5 @@ junit.xml
 
 *.bsp
 *.tle
+
+*.txt

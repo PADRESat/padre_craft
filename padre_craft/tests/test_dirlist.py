@@ -1,109 +1,313 @@
 import astropy.units as u
+import numpy as np
 import pytest
-from astropy.table import QTable
 from astropy.time import Time
+from astropy.timeseries import TimeSeries
 
 from padre_craft import _test_files_directory
 from padre_craft.dirlist import dirlist
 
-test_file = _test_files_directory / "padre_craft_dirlist_022426.txt"
+test_file = _test_files_directory / "padre_craft_dirlist_1772908542.txt"
+bin_test_file = _test_files_directory / "padre_craft_dirlist_1774795542.bin"
+
+_all_instr_data_types = {
+    "padre_craft": {"padre_craft": "padre_craft"},
+    "meddea": {"MDA0": "photon", "MDU8": "hk", "MDA2": "spectrum"},
+    "sharp": {
+        "SP10": "det0",
+        "SP11": "det1",
+        "SP12": "det2",
+        "SP13": "det3",
+        "SP14": "det4",
+        "SP15": "det5",
+        "SP16": "det6",
+        "SP17": "det7",
+        "SP20": "det_hk",
+        "SP30": "response",
+        "SP122": "histogram",
+        "SP160": "shipboot_hk",
+        "SP162": "ship_hk",
+    },
+}
+
+
+_all_instr_data_types = {
+    "padre_craft": {"padre_craft": "padre_craft"},
+    "meddea": {"MDA0": "photon", "MDU8": "hk", "MDA2": "spectrum"},
+    "sharp": {
+        "SP10": "det0",
+        "SP11": "det1",
+        "SP12": "det2",
+        "SP13": "det3",
+        "SP14": "det4",
+        "SP15": "det5",
+        "SP16": "det6",
+        "SP17": "det7",
+        "SP20": "det_hk",
+        "SP30": "response",
+        "SP122": "histogram",
+        "SP160": "shipboot_hk",
+        "SP162": "ship_hk",
+    },
+}
 
 
 @pytest.fixture
-def file_list():
-    return dirlist.read_dirlist(test_file)
+def dir_list():
+    return dirlist.DirList(test_file)
 
 
-def test_dirlist_class(file_list):
-    assert isinstance(file_list, QTable)
-    assert len(file_list) == 107
-    assert file_list["size(in bytes)"].sum() > 840 * u.MB
-    assert file_list.meta["filename"] == str(test_file)
-    assert file_list.meta["time"] == "2026-02-24T00:00:00.000"
+def test_dirlist_class_input():
+    dirlist.DirList(test_file)
+    dirlist.DirList(str(test_file))
 
 
-def test_meddealist_class(file_list):
-    meddea_file_list = dirlist.MeDDEAFileList(file_list)
-    assert isinstance(meddea_file_list, dirlist.MeDDEAFileList)
-    assert len(meddea_file_list.file_list) == 69
-    assert len(meddea_file_list.spec_files) == 33
-    assert len(meddea_file_list.ph_files) == 32
-    assert len(meddea_file_list.hk_files) == 4
-    assert meddea_file_list.total_size() > 367 * u.MB
-    assert meddea_file_list.total_size(data_type="spectrum") > 346 * u.MB
-    assert meddea_file_list.total_size(data_type="photon") > 335 * u.MB
-    assert meddea_file_list.total_size(data_type="hk") > 30 * u.MB
+def test_dirlist_class(dir_list):
+    assert isinstance(dir_list, dirlist.DirList)
+    assert len(dir_list) == 121
+    assert isinstance(dir_list.__repr__(), str)
 
 
-def test_parse_dirlist_filename_time():
-    """Test the parse_dirlist_filename_time function with different formats."""
-    # Test MMDDYY format (6 digits)
-    time_6digit = dirlist.parse_dirlist_filename_time("Dirlist_Full_022426.txt")
-    expected_6digit = Time("2026-02-24 00:00:00", format="iso", scale="utc")
-    assert time_6digit == expected_6digit
-
-    # Test MMDDYY format with different filename
-    time_6digit2 = dirlist.parse_dirlist_filename_time("padre_craft_dirlist_022426.txt")
-    assert time_6digit2 == expected_6digit
-
-    # Test with Path object
-    from pathlib import Path
-
-    time_path = dirlist.parse_dirlist_filename_time(Path("test_dirlist_022426.txt"))
-    assert time_path == expected_6digit
-
-    # Test error case - no date pattern
-    with pytest.raises(ValueError, match="Could not parse date from filename"):
-        dirlist.parse_dirlist_filename_time("no_date_here.txt")
+def test_dirlist_contents(dir_list):
+    assert dir_list._file_size_dict()["total"] > 840 * u.MB
+    assert dir_list._file_size_dict()["total"] == np.sum(dir_list.file_list["size"])
+    assert dir_list.file_list.meta["filename"] == str(test_file)
+    assert dir_list.file_list.meta["time"] == "2026-03-07T18:35:42.000"
+    assert "file_create_time" in dir_list.file_list.colnames
+    assert dir_list.file_list["file_create_time"][0] == Time(
+        1769033135, format="unix", scale="utc"
+    )  # Check that the first file's create time is correct
 
 
-def test_summarize_dirlist(file_list):
-    """Test the summarize_dirlist function."""
-    summary = dirlist.summarize_dirlist(file_list)
+def test_dirlist_available_data_types(dir_list):
+    data_types = dir_list.available_data_types()
+    assert isinstance(data_types, np.ndarray)
+    for this_instrument in _all_instr_data_types.keys():
+        for this_data_type in _all_instr_data_types[this_instrument].values():
+            assert this_data_type in data_types
 
-    # Check that it returns a QTable
-    assert isinstance(summary, QTable)
 
-    # Check that it has the right columns
-    assert "time" in summary.colnames
-    assert "file_count_meddea" in summary.colnames
-    assert "file_count_meddea_photon" in summary.colnames
-    assert "file_count_meddea_spectrum" in summary.colnames
-    assert "file_count_meddea_hk" in summary.colnames
-    assert "file_count_sharp" in summary.colnames
-    assert "file_count_total" in summary.colnames
-    assert "size_meddea" in summary.colnames
-    assert "size_meddea_photon" in summary.colnames
-    assert "size_meddea_spectrum" in summary.colnames
-    assert "size_meddea_hk" in summary.colnames
-    assert "size_sharp" in summary.colnames
-    assert "size_total" in summary.colnames
+def test_dirlist_available_instruments(dir_list):
+    instruments = dir_list.available_instruments()
+    assert isinstance(instruments, np.ndarray)
+    for this_instrument in _all_instr_data_types.keys():
+        assert this_instrument in instruments
 
-    # Check that it has one row
-    assert len(summary) == 1
 
-    # Check values
-    assert summary["time"][0] == "2026-02-24T00:00:00.000"
-    assert summary["file_count_total"][0] == 107
-    assert summary["file_count_meddea"][0] == 69
-    assert summary["file_count_meddea_photon"][0] > 0
-    assert summary["file_count_meddea_spectrum"][0] > 0
-    assert summary["file_count_meddea_hk"][0] > 0
-    assert summary["file_count_sharp"][0] > 0  # There should be some SHARP files
-    assert summary["size_total"][0] > 840
-    assert summary["size_meddea"][0] > 0
-    assert summary["size_meddea_photon"][0] > 0
-    assert summary["size_meddea_spectrum"][0] > 0
-    assert summary["size_meddea_hk"][0] > 0
-    # Check that the sum of MeDDEA count components equals total MeDDEA count
-    assert (
-        summary["file_count_meddea_photon"][0]
-        + summary["file_count_meddea_spectrum"][0]
-        + summary["file_count_meddea_hk"][0]
-    ) == summary["file_count_meddea"][0]
-    # Check that the sum of MeDDEA components equals total MeDDEA size
-    assert (
-        summary["size_meddea_photon"][0]
-        + summary["size_meddea_spectrum"][0]
-        + summary["size_meddea_hk"][0]
-    ) == summary["size_meddea"][0]
+def test_dirlist_file_size_struct(dir_list):
+    file_size_table = dir_list.file_size()
+    assert isinstance(file_size_table, dirlist.QTable)
+    assert "name" in file_size_table.colnames
+    assert "size" in file_size_table.colnames
+    assert len(file_size_table) > 0
+
+
+def test_dirlist_file_count_struct(dir_list):
+    file_count_table = dir_list.file_count()
+    assert isinstance(file_count_table, dirlist.QTable)
+    assert "name" in file_count_table.colnames
+    assert "count" in file_count_table.colnames
+    assert len(file_count_table) > 0
+
+
+@pytest.mark.parametrize(
+    "expected_row",
+    ["total", "padre_craft_padre_craft"]
+    + [f"sharp_{d}" for d in _all_instr_data_types["sharp"].values()]
+    + [f"meddea_{d}" for d in _all_instr_data_types["meddea"].values()],
+)
+def test_dirlist_count_count_rows(dir_list, expected_row):
+    file_count_dict = dir_list._file_count_dict()
+    file_size_dict = dir_list._file_size_dict()
+    file_count_table = dir_list.file_count()
+    file_size_table = dir_list.file_size()
+    assert expected_row in file_count_dict.keys()
+    assert expected_row in file_size_dict.keys()
+    assert expected_row in file_count_table["name"]
+    assert expected_row in file_size_table["name"]
+
+
+@pytest.mark.parametrize(
+    "filename, expected",
+    [
+        (
+            "SP160260205223638.idx",
+            ("160", Time("2026-02-05T22:36:38.000", format="isot", scale="utc")),
+        ),
+        (
+            "SP160270205223638.dat",
+            ("160", Time("2027-02-05T22:36:38.000", format="isot", scale="utc")),
+        ),
+        (
+            "SP16260205223639.dat",
+            ("16", Time("2026-02-05T22:36:39.000", format="isot", scale="utc")),
+        ),
+        (
+            "SP10260205224638.dat",
+            ("10", Time("2026-02-05T22:46:38.000", format="isot", scale="utc")),
+        ),
+        (
+            "SP160260205223938.dat",
+            ("160", Time("2026-02-05T22:39:38.000", format="isot", scale="utc")),
+        ),
+        (
+            "SP20260205223638.dat",
+            ("20", Time("2026-02-05T22:36:38.000", format="isot", scale="utc")),
+        ),
+    ],
+)
+def test_parse_sharp_filename(filename, expected):
+    result = dirlist.DirList._parse_sharp_filename(filename)
+    assert result == expected
+
+
+@pytest.mark.parametrize(
+    "filename, expected",
+    [
+        (
+            "MDA0260205223638.dat",
+            ("A0", Time("2026-02-05T22:36:38.000", format="isot", scale="utc")),
+        ),
+        (
+            "MDA2270205223638.dat",
+            ("A2", Time("2027-02-05T22:36:38.000", format="isot", scale="utc")),
+        ),
+        (
+            "MDU8260205223639.dat",
+            ("U8", Time("2026-02-05T22:36:39.000", format="isot", scale="utc")),
+        ),
+        (
+            "MDA0260205224638.dat",
+            ("A0", Time("2026-02-05T22:46:38.000", format="isot", scale="utc")),
+        ),
+    ],
+)
+def test_parse_meddea_filename(filename, expected):
+    result = dirlist.DirList._parse_meddea_filename(filename)
+    assert result == expected
+
+
+def test_parse_sharp_filename_error():
+    filename = "test.csv"
+    with pytest.raises(ValueError, match=f"Could not parse SHARP filename: {filename}"):
+        dirlist.DirList._parse_sharp_filename(filename)
+
+
+def test_parse_meddea_filename_error():
+    filename = "test.csv"
+    with pytest.raises(
+        ValueError, match=f"Could not parse MeDDEA filename: {filename}"
+    ):
+        dirlist.DirList._parse_meddea_filename(filename)
+
+
+@pytest.mark.parametrize(
+    "name, count",
+    [
+        ("total", 121),
+        ("padre_craft_padre_craft", 27),
+        ("meddea_photon", 32),
+        ("meddea_hk", 4),
+        ("meddea_spectrum", 33),
+        ("sharp_det0", 1),
+        ("sharp_det1", 1),
+        ("sharp_det2", 1),
+        ("sharp_det3", 1),
+        ("sharp_det4", 2),
+        ("sharp_det5", 1),
+        ("sharp_det6", 9),
+        ("sharp_det7", 1),
+        ("sharp_det_hk", 2),
+        ("sharp_response", 2),
+        ("sharp_histogram", 1),
+        ("sharp_shipboot_hk", 2),
+        ("sharp_ship_hk", 1),
+    ],
+)
+def test_dirlist_file_count(dir_list, name, count):
+    file_count_dict = dir_list._file_count_dict()
+    #  file_count_table = dir_list.file_count()
+    ts_count = dir_list.to_summary_ts(metric_type="count")
+    assert file_count_dict[name] == count
+    assert ts_count[name] == count
+
+
+@pytest.mark.parametrize(
+    "name, size",
+    [
+        ("total", 861),
+        ("padre_craft_padre_craft", 53),
+        ("meddea_hk", 31),
+        ("meddea_spectrum", 346),
+        ("sharp_det0", 10.49113),
+        ("sharp_det1", 10.49113),
+        ("sharp_det2", 10.49113),
+        ("sharp_det3", 10.49113),
+        ("sharp_det4", 14.41736),
+        ("sharp_det5", 10.49113),
+        ("sharp_det6", 94.388646),
+        ("sharp_det7", 10.49113),
+        ("sharp_det_hk", 12.087848),
+        ("sharp_response", 10.491372),
+        ("sharp_histogram", 10.49113),
+        ("sharp_shipboot_hk", 10.491226),
+        ("sharp_ship_hk", 3.2e-05),
+    ],
+)
+def test_dirlist_file_size(dir_list, name, size):
+    file_size_dict = dir_list._file_size_dict()
+    #  file_size_table = dir_list.file_size()
+    ts_size = dir_list.to_summary_ts(metric_type="size")
+    assert file_size_dict[name] >= size * u.MB
+    assert ts_size[name] >= size
+
+
+def test_dirlist_to_summary_ts(dir_list):
+    ts = dir_list.to_summary_ts(metric_type="size")
+    assert isinstance(ts, TimeSeries)
+
+
+def test_dirlist_to_summary_ts_invalid_metric(dir_list):
+    with pytest.raises(
+        ValueError, match="Invalid metric_type 'invalid'. Expected 'size' or 'count'."
+    ):
+        dir_list.to_summary_ts(metric_type="invalid")
+
+
+def test_dirlist_to_meddea(dir_list):
+    dir_list = dir_list.only_meddea()
+    assert isinstance(dir_list, dirlist.DirList)
+    assert len(dir_list) == 69
+
+
+def test_dirlist_to_sharp(dir_list):
+    dir_list = dir_list.only_sharp()
+    assert isinstance(dir_list, dirlist.DirList)
+    assert len(dir_list) == 25
+
+
+def test_dirlist_bin_file():
+    with pytest.raises(
+        ValueError,
+        match=f"Could not read file {bin_test_file.name}. Please make sure it is a valid ASCII file and not a binary file.",
+    ):
+        dirlist.DirList(bin_test_file)
+
+
+def test_dirlist_to_csv(dir_list, tmp_path):
+    output_file = tmp_path / "test_dirlist.csv"
+    dir_list.to_csv(output_file)
+    assert output_file.exists()
+    result = dirlist.Table.read(output_file, format="ascii.csv", comment="#")
+    assert len(result) == len(dir_list)
+    assert set(dir_list.file_list.colnames) == set(result.colnames)
+    content = output_file.read_text()
+    assert dir_list.filename in content
+    assert str(dir_list.time) in content
+
+
+def test_only_instruments(dir_list):
+    instr_dirlist = dir_list.only_instruments()
+    assert isinstance(instr_dirlist, dirlist.DirList)
+    assert np.isin(instr_dirlist.available_instruments(), ["meddea", "sharp"]).all()
+    assert len(instr_dirlist) == 94

@@ -14,5 +14,6 @@ Note that this package is still in active development.
 
    overview
    orbit
+   dirlist
    customization
    logger

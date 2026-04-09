@@ -1,11 +1,11 @@
 """Provides functions to upload data to the time series database for display"""
 
-from astropy.table import QTable
 from astropy.timeseries import TimeSeries
 from padre_meddea.housekeeping.calibration import calibrate_hk_ts
 from swxsoc.util.util import record_timeseries
 
 import padre_craft.util.util as util
+from padre_craft.dirlist.dirlist import DirList
 
 
 def record_housekeeping(hk_ts: TimeSeries, data_type: str) -> None:
@@ -51,5 +51,26 @@ def record_orbit(padre_orbit_ts: TimeSeries) -> None:
     record_timeseries(padre_orbit_ts, "orbit", "craft")
 
 
-def record_dirlist(dirlist_summary_ts: QTable) -> None:
-    record_timeseries(ts=dirlist_summary_ts, ts_name="dirlist", instrument_name="craft")
+def record_dirlist(this_dirlist: DirList) -> None:
+    """
+    Record directory listing summary data (file sizes and counts) to AWS.
+
+    This function converts a DirList into summary time series for file sizes
+    and file counts, then uploads those summaries to the time series database.
+
+    Parameters
+    ----------
+    this_dirlist : DirList
+        Directory listing to be summarized into file size and file count
+        time series for upload.
+    """
+    # record the file sizes
+    summary_ts = this_dirlist.to_summary_ts(metric_type="size")
+    record_timeseries(
+        ts=summary_ts, ts_name="dirlist_file_size", instrument_name="craft"
+    )
+    # record the file counts
+    summary_ts = this_dirlist.to_summary_ts(metric_type="count")
+    record_timeseries(
+        ts=summary_ts, ts_name="dirlist_file_count", instrument_name="craft"
+    )
