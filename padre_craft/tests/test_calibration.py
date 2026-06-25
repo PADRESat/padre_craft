@@ -38,14 +38,13 @@ def test_process_dirlist_file(mock_record_dirlist):
 
     # Check that the function returned a None placeholder
     assert len(output_files) == 1
-    assert output_files[0] == "latest_dirlist.csv"
+    assert output_files[0].name == "latest_dirlist.csv"
 
-    file_list = Table.read(output_files[0], format="csv")
+    _ = Table.read(output_files[0], format="csv")
     assert Path(output_files[0]).exists()
     latest_file_list = Table.read(output_files[0], format="csv")
     assert len(latest_file_list) == 94
-    assert set(latest_file_list['instrument']) == {'meddea', 'sharp'}
-
+    assert set(latest_file_list["instrument"]) == {"meddea", "sharp"}
 
     # Verify that record_dirlist was called exactly once
     assert mock_record_dirlist.call_count == 1

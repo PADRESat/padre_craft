@@ -272,10 +272,10 @@ def test_to_csv(tmp_path, dir_list):
     assert output_file.exists()
     latest_file_list = Table.read(output_file, format="csv")
     assert len(latest_file_list) == 94
-    assert set(latest_file_list['instrument']) == {'meddea', 'sharp'}
+    assert set(latest_file_list["instrument"]) == {"meddea", "sharp"}
 
     dir_list.to_csv(output_file, only_instruments=False)
     assert output_file.exists()
     latest_file_list = Table.read(output_file, format="csv")
     assert len(latest_file_list) == 121
-    assert set(latest_file_list['instrument']) == {'meddea', 'sharp', 'padre_craft'}
+    assert set(latest_file_list["instrument"]) == {"meddea", "sharp", "padre_craft"}
