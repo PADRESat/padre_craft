@@ -121,9 +121,17 @@ def process_file(filename: Path, overwrite=False, output_fits=False) -> list:
         dir_list = DirList(file_path)
         # Send to AWS
         aws_db.record_dirlist(dir_list)
-
         log.info(f"Dirlist summary recorded to AWS for {filename}")
-        output_files.append(None)
+
+        # create output file_list
+        output_dirlist_filename = "latest_dirlist.csv"
+        dir_list.to_csv(output_dirlist_filename, only_instruments=True)
+
+        log.info(
+            f"Latest dirlist file created at {output_dirlist_filename} from {filename}"
+        )
+
+        output_files.append(output_dirlist_filename)
 
     # add other tasks below
     return output_files

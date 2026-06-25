@@ -303,3 +303,16 @@ class DirList:
         meddea_dirlist.file_list = meddea_file_list
         meddea_dirlist._all_instr_data_types = self._all_instr_data_types
         return meddea_dirlist
+
+    def to_csv(self, output_file: str | Path, only_instruments=True) -> None:
+        """Write the dirlist to a CSV file"""
+        if only_instruments:
+            this_file_list = self.file_list[
+                self.file_list["instrument"] != "padre_craft"
+            ]
+        else:
+            this_file_list = self.file_list
+
+        if not isinstance(output_file, Path):
+            output_file = Path(output_file)
+        this_file_list.write(output_file, format="csv", overwrite=True)
