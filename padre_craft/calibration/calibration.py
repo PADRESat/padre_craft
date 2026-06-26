@@ -2,7 +2,9 @@
 A module for all things calibration.
 """
 
+import os
 from pathlib import Path
+import tempfile
 
 from astropy.io import fits
 from astropy.table import Table
@@ -52,6 +54,13 @@ def process_file(filename: Path, overwrite=False, output_fits=False) -> list:
 
     output_files = []
     file_path = Path(filename)
+
+    # Check if the LAMBDA_ENVIRONMENT environment variable is set
+    lambda_environment = os.getenv("LAMBDA_ENVIRONMENT")
+    if lambda_environment:
+        output_path = Path(tempfile.gettempdir())
+    else:
+        output_path = Path.cwd()  # Default to current working directory
 
     if file_path.suffix.lower() in [".csv"]:  # raw file
         data_ts = file_tools.read_file(file_path)
@@ -119,11 +128,21 @@ def process_file(filename: Path, overwrite=False, output_fits=False) -> list:
         # Process dirlist file
         log.info(f"Processing dirlist file {filename}")
         dir_list = DirList(file_path)
+
         # Send to AWS
         aws_db.record_dirlist(dir_list)
-
         log.info(f"Dirlist summary recorded to AWS for {filename}")
-        output_files.append(None)
+
+        # create output file_list
+        output_dirlist_filename = "latest_dirlist.csv"
+        dirlist_output_path = output_path / output_dirlist_filename
+        dir_list.to_csv(dirlist_output_path, only_instruments=True)
+
+        log.info(
+            f"Latest dirlist file created at {dirlist_output_path} from {filename}"
+        )
+
+        output_files.append(dirlist_output_path)
 
     # add other tasks below
     return output_files

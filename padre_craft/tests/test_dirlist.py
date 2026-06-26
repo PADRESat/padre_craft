@@ -1,6 +1,7 @@
 import astropy.units as u
 import numpy as np
 import pytest
+from astropy.table import Table
 from astropy.time import Time
 from astropy.timeseries import TimeSeries
 
@@ -263,3 +264,18 @@ def test_dirlist_to_sharp(dir_list):
     dir_list = dir_list.only_sharp()
     assert isinstance(dir_list, dirlist.DirList)
     assert len(dir_list) == 25
+
+
+def test_to_csv(tmp_path, dir_list):
+    output_file = tmp_path / "test_dirlist_output.csv"
+    dir_list.to_csv(output_file, only_instruments=True)
+    assert output_file.exists()
+    latest_file_list = Table.read(output_file, format="csv")
+    assert len(latest_file_list) == 94
+    assert set(latest_file_list["instrument"]) == {"meddea", "sharp"}
+
+    dir_list.to_csv(output_file, only_instruments=False)
+    assert output_file.exists()
+    latest_file_list = Table.read(output_file, format="csv")
+    assert len(latest_file_list) == 121
+    assert set(latest_file_list["instrument"]) == {"meddea", "sharp", "padre_craft"}
