@@ -33,7 +33,7 @@ dependencies = [
   'basemap',
   'swxsoc @ git+https://github.com/swxsoc/swxsoc.git@main',
   'gitpython==3.1.*',
-  'solarnet_metadata @ git+https://github.com/IHDE-Alliance/solarnet_metadata.git@solarnet_metadata_package',
+  'solarnet_metadata',
   'padre_meddea @ git+https://github.com/PADRESat/padre_meddea.git',
   'shapely',
   'skyfield>=1.53',
