@@ -3,8 +3,8 @@ A module for all things calibration.
 """
 
 import os
-from pathlib import Path
 import tempfile
+from pathlib import Path
 
 from astropy.io import fits
 from astropy.table import Table

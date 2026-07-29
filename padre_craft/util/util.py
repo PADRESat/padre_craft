@@ -4,7 +4,7 @@ import numpy as np
 from astropy.table import Table
 from astropy.time import Time
 from astropy.timeseries import TimeSeries
-from swxsoc.util import create_science_filename, parse_science_filename
+from swxsoc.util.util import create_science_filename, parse_science_filename
 
 from padre_craft import log
 

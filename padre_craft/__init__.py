@@ -2,6 +2,8 @@
 import os
 from pathlib import Path
 
+from astropy.time import Time
+
 try:
     from ._version import version as __version__
     from ._version import version_tuple
@@ -16,7 +18,7 @@ os.environ["SWXSOC_MISSION"] = SWXSOC_MISSION
 from swxsoc import config as swxsoc_config  # noqa: E402
 from swxsoc import log as swxsoc_log
 from swxsoc import print_config
-from astropy.time import Time
+
 # Load user configuration
 config = swxsoc_config
 
