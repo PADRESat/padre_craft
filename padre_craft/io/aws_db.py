@@ -2,7 +2,7 @@
 
 from astropy.timeseries import TimeSeries
 from padre_meddea.housekeeping.calibration import calibrate_hk_ts
-from swxsoc.util.util import record_timeseries
+from swxsoc.db.timeseries import record_timeseries
 
 import padre_craft.util.util as util
 from padre_craft.dirlist.dirlist import DirList
